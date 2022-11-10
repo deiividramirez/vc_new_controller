@@ -8,3 +8,4 @@ Este repositorio fue hecho para implementar una modificación al algoritmo descr
 5. interaction_Mat.cpp (Línea 37)
 6. Moore_Penrose_PInv.cpp (Línea 42)
 7. Se actualiza los valores de velocidad, se integran y se publican en el dron
+control uav ros robots formation formation-control dron cube-formation
