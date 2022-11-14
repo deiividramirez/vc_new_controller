@@ -11,7 +11,6 @@ int homography(Mat img,
     if (compute_homography(img,state.params,state.desired_configuration,matching_result)<0)
       return -1;
 
-
 		// Decompose homography*/
 		vector<Mat> Rs;
 		vector<Mat> Ts;
@@ -30,6 +29,6 @@ int homography(Mat img,
 		//velocities from homography decomposition and euler angles.
 		Vec3f angles = rotationMatrixToEulerAngles(state.R_best);
 		state.Vyaw   = (float) -angles[2];//due to camera framework
-		
+
 		return 0;
 }

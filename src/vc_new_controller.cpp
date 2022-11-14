@@ -29,7 +29,7 @@ vc_state state;
 vc_homograpy_matching_result matching_result;
 
 //  Selector de control
-int contr_sel = 1;
+int contr_sel = 2;
 // TODO: añadirlo a los argumentos o yaml
 
 /* Main function */
@@ -37,7 +37,7 @@ int main(int argc, char **argv)
 {
 
 	/***************************************************************************************** INIT */
-	ros::init(argc, argv, "vc_controller");
+	ros::init(argc, argv, "vc_new_controller");
 	ros::NodeHandle nh;
 	state.load(nh);
 
@@ -45,7 +45,7 @@ int main(int argc, char **argv)
 
 	/************************************************************* CREATING PUBLISHER AND SUBSCRIBER */
 	image_transport::Subscriber image_sub = it.subscribe("/hummingbird/camera_nadir/image_raw", 1, imageCallback);
-	image_transport::Publisher image_pub  = it.advertise("matching", 1);
+	image_transport::Publisher image_pub = it.advertise("matching", 1);
 	ros::Rate rate(40);
 
 	/************************************************************************** OPENING DESIRED IMAGE */
@@ -56,25 +56,29 @@ int main(int argc, char **argv)
 		cerr << "[ERR] Could not open or find the reference image" << std::endl;
 		return -1;
 	}
+	else 
+	{ 
+		cout << "[INFO] Reference image loaded" << std::endl;
+	}
 
 	Ptr<ORB> orb = ORB::create(state.params.nfeatures,
-							   state.params.scaleFactor,
-							   state.params.nlevels,
-							   state.params.edgeThreshold,
-							   state.params.firstLevel,
-							   state.params.WTA_K,
-							   state.params.scoreType,
-							   state.params.patchSize,
-							   state.params.fastThreshold);
+														 state.params.scaleFactor,
+														 state.params.nlevels,
+														 state.params.edgeThreshold,
+														 state.params.firstLevel,
+														 state.params.WTA_K,
+														 state.params.scoreType,
+														 state.params.patchSize,
+														 state.params.fastThreshold);
 
 	orb->detect(state.desired_configuration.img,
-				state.desired_configuration.kp);
+							state.desired_configuration.kp);
 	orb->compute(state.desired_configuration.img,
-				 state.desired_configuration.kp,
-				 state.desired_configuration.descriptors);
+							 state.desired_configuration.kp,
+							 state.desired_configuration.descriptors);
 
 	/******************************************************************************* MOVING TO A POSE */
-	ros::Publisher pos_pub  = nh.advertise<trajectory_msgs::MultiDOFJointTrajectory>("/hummingbird/command/trajectory", 1);
+	ros::Publisher pos_pub = nh.advertise<trajectory_msgs::MultiDOFJointTrajectory>("/hummingbird/command/trajectory", 1);
 	ros::Subscriber pos_sub = nh.subscribe<geometry_msgs::Pose>("/hummingbird/ground_truth/pose", 1, poseCallback);
 
 	/**************************************************************************** data for graphics */
@@ -103,7 +107,7 @@ int main(int argc, char **argv)
 
 		// save data
 		time.push_back(state.t);
-		errors.push_back((float) matching_result.mean_feature_error);
+		errors.push_back((float)matching_result.mean_feature_error);
 		vel_x.push_back(state.Vx);
 		vel_y.push_back(state.Vy);
 		vel_z.push_back(state.Vz);
@@ -128,11 +132,11 @@ int main(int argc, char **argv)
 	}
 
 	// save data
-	writeFile(errors,  workspace + file_folder + "errors.txt");
-	writeFile(time,    workspace + file_folder + "time.txt");
-	writeFile(vel_x,   workspace + file_folder + "Vx.txt");
-	writeFile(vel_y,   workspace + file_folder + "Vy.txt");
-	writeFile(vel_z,   workspace + file_folder + "Vz.txt");
+	writeFile(errors, workspace + file_folder + "errors.txt");
+	writeFile(time, workspace + file_folder + "time.txt");
+	writeFile(vel_x, workspace + file_folder + "Vx.txt");
+	writeFile(vel_y, workspace + file_folder + "Vy.txt");
+	writeFile(vel_z, workspace + file_folder + "Vz.txt");
 	writeFile(vel_yaw, workspace + file_folder + "Vyaw.txt");
 
 	return 0;
@@ -148,7 +152,7 @@ int main(int argc, char **argv)
 
 void imageCallback(const sensor_msgs::Image::ConstPtr &msg)
 {
-
+	cout << "imageCallback" << endl;
 	try
 	{
 		Mat img = cv_bridge::toCvShare(msg, "bgr8")->image;
@@ -162,20 +166,20 @@ void imageCallback(const sensor_msgs::Image::ConstPtr &msg)
 		/************************************************************* Prepare message */
 		image_msg = cv_bridge::CvImage(std_msgs::Header(), sensor_msgs::image_encodings::BGR8, matching_result.img_matches).toImageMsg();
 		image_msg->header.frame_id = "matching_image";
-		image_msg->width           = matching_result.img_matches.cols;
-		image_msg->height          = matching_result.img_matches.rows;
-		image_msg->is_bigendian    = false;
-		image_msg->step            = sizeof(unsigned char) * matching_result.img_matches.cols * 3;
-		image_msg->header.stamp    = ros::Time::now();
+		image_msg->width = matching_result.img_matches.cols;
+		image_msg->height = matching_result.img_matches.rows;
+		image_msg->is_bigendian = false;
+		image_msg->step = sizeof(unsigned char) * matching_result.img_matches.cols * 3;
+		image_msg->header.stamp = ros::Time::now();
 
 		if (state.initialized)
 			cout << "==============================================\n\n"
-				 << " Vx: " << state.Vx << " Vy: " << state.Vy << " Vz: " << state.Vz << " Vroll: " << state.Vroll << " Vpitch: " << state.Vpitch << " Wyaw: " << state.Vyaw << " average error: " << matching_result.mean_feature_error << endl;
+					 << " Vx: " << state.Vx << ", Vy: " << state.Vy << ", Vz: " << state.Vz << ", Vroll: " << state.Vroll << ", Vpitch: " << state.Vpitch << ", Wyaw: " << state.Vyaw << " => average error: " << matching_result.mean_feature_error << endl;
 	}
 	catch (cv_bridge::Exception &e)
 	{
 		ROS_ERROR("Could not convert from '%s' to 'bgr8'.",
-				  msg->encoding.c_str());
+							msg->encoding.c_str());
 	}
 }
 

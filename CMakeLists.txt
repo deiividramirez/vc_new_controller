@@ -211,6 +211,7 @@ src/vc_state/camera_norm.cpp
 src/vc_state/compute_descriptors.cpp
 src/vc_state/Moore_Penrose_PInv.cpp 
 src/vc_state/chaumette.cpp
+src/vc_state/GUO.cpp
 src/vc_state/interaction_Mat.cpp
 src/vc_state/compute_homography.cpp  
 src/vc_state/homograpy.cpp

@@ -69,13 +69,18 @@ int chaumette(cv::Mat img,
                vc_homograpy_matching_result & matching_result
               );
 
+int GUO(cv::Mat img,
+               vc_state & state,
+               vc_homograpy_matching_result & matching_result
+              );
+
 // Controller selection array only for vc_controller.h
 #ifdef VC_CONTROLLER_H
 typedef int (*funlist) (cv::Mat img,
                         vc_state & state,
                         vc_homograpy_matching_result & matching_result
                        );
-funlist controllers[] = {&homography,&chaumette};
+funlist controllers[] = {&homography, &chaumette, &GUO};
 #endif
 
 #endif

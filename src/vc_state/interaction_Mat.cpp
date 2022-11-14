@@ -9,9 +9,9 @@ Mat interaction_Mat(vc_homograpy_matching_result& result,
     int n = result.p2.rows;
     std::cout << "interaction_Mat: result.p2.size  = " << result.p2.size << std::endl;
 //     std::cout << "p2 = " << result.p2 << std::endl;
-    std::cout << "DB2.1.a" << std::endl;
+    // std::cout << "DB2.1.a" << std::endl;
 //     camera_norm(params, result);
-    std::cout << "DB2.1.b" << std::endl;
+    // std::cout << "DB2.1.b" << std::endl;
     Mat L= Mat::zeros(n,12,CV_64F) ;
     
     //  Calculos
