@@ -16,7 +16,7 @@ int compute_descriptors(const Mat &img,
 	/*** Creatring ORB object ***/
 	Ptr<ORB> orb = ORB::create(params.nfeatures, params.scaleFactor, params.nlevels, params.edgeThreshold, params.firstLevel, params.WTA_K, params.scoreType, params.patchSize, params.fastThreshold);
 	orb->detect(img, kp);
-	
+
 	if (kp.size() == 0)
 	{
 		cout << "No keypoints detected" << endl;
@@ -38,8 +38,10 @@ int compute_descriptors(const Mat &img,
 			goodMatches.push_back(matches[i][0]);
 	}
 	if (goodMatches.size() == 0)
+	{
 		cout << "There are no good matches" << endl;
-	return -1;
+		exit(-1);
+	}
 
 	/************************************************************* Getting descriptors */
 

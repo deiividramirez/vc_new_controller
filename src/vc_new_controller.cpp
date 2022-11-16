@@ -46,7 +46,8 @@ int main(int argc, char **argv)
 	/************************************************************* CREATING PUBLISHER AND SUBSCRIBER */
 	image_transport::Subscriber image_sub = it.subscribe("/hummingbird/camera_nadir/image_raw", 1, imageCallback);
 	image_transport::Publisher image_pub = it.advertise("matching", 1);
-	ros::Rate rate(40);
+	// ros::Rate rate(40);
+	ros::Rate rate(120);
 
 	/************************************************************************** OPENING DESIRED IMAGE */
 	string image_dir = "/src/vc_controller/src/desired.png";

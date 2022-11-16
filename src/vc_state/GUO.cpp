@@ -36,8 +36,8 @@ int toSphere(Mat p1,
                 temp.at<double>(1, 0) = p1.at<double>(i, 1);
                 temp.at<double>(2, 0) = 1;
                 tmp = params.K.inv() * temp;
-                tmp = tmp / norm(tmp);
-                p1s.row(i) = tmp.t();
+                // tmp = tmp / norm(tmp);
+                p1s.row(i) = tmp.t() / norm(tmp);
                 // cout << "tmp1: " << tmp.t() << " p1s: " << p1s.row(i) << endl;
 
                 temp.at<double>(0, 0) = p2.at<double>(i, 0);
@@ -46,8 +46,8 @@ int toSphere(Mat p1,
                 tmp = params.K.inv() * temp;
                 p23D.row(i) = tmp.t();
                 // cout << "tmp2.1: " << tmp.t() << " p23D: " << p23D.row(i) << endl;
-                tmp = tmp / norm(tmp);
-                p2s.row(i) = tmp.t();
+                // tmp = tmp / norm(tmp);
+                p2s.row(i) = tmp.t() / norm(tmp);
                 // cout << "tmp2.2: " << tmp.t() << " p2s: " << p2s.row(i) << endl;
         }
         temp.release();
@@ -72,11 +72,21 @@ int distances(Mat p1,
                         {
                                 // cout << "p2i * p2j: " << p2.row(i).dot(p2.row(j)) << endl;
                                 // cout << "p1i * p1j: " << p1.row(i).dot(p1.row(j)) << endl;
-                                dist = sqrt(2 - 2 * (double)(p2.row(i).dot(p2.row(j))));
+                                dist  = sqrt(2 - 2 * (double)(p2.row(i).dot(p2.row(j))));
                                 dist2 = sqrt(2 - 2 * (double)(p1.row(i).dot(p1.row(j))));
-                                if (dist <= 1e-9 || dist2 <= 1e-9 || isnan(dist) || isnan(dist2) || isinf(dist) || isinf(dist2) || p2.row(i).dot(p2.row(j)) > .9 || p1.row(i).dot(p1.row(j)) > .9)
+                                if (dist <= 1e-9 || 
+                                        dist2 <= 1e-9 || 
+                                        isnan(dist) || 
+                                        isnan(dist2) || 
+                                        isinf(dist) || 
+                                        isinf(dist2) || 
+                                        p2.row(i).dot(p2.row(j)) > .97 || 
+                                        p1.row(i).dot(p1.row(j)) > .97)
+                                {
+                                        // cout << "WTF dist: " << dist << " -- " << dist2 << " -> " << p2.row(i) << " <-> " << p2.row(j) << " - " << p1.row(i).dot(p1.row(j)) << endl;
                                         continue;
-                                // cout << "dist: " << dist << " -- " << p1.row(i) << " <-> " << p2.row(j) << endl;
+                                }
+                                // cout << "dist: " << dist << " -- " << dist2 << " -> " << p2.row(i) << " <-> " << p2.row(j) << endl;
                                 tmpDist.i = i;
                                 tmpDist.j = j;
                                 tmpDist.dist = 1 / dist;
@@ -111,8 +121,9 @@ Mat ortoProj(Mat p1)
         Mat p1Temp = Mat::zeros(3, 1, CV_64F);
         p1Temp.at<double>(0, 0) = p1.at<double>(0, 0);
         p1Temp.at<double>(1, 0) = p1.at<double>(0, 1);
-        p1Temp.at<double>(2, 0) = 1;
+        p1Temp.at<double>(2, 0) = p1.at<double>(0, 2);
         Mat OP = I - p1Temp * p1Temp.t();
+        // Mat OP = I - p1Temp.t() * p1Temp;
         I.release();
         p1Temp.release();
         return OP;
@@ -122,7 +133,7 @@ Mat Lvl(Mat p23D,
         Mat p2s,
         vector<vecDist> &distances)
 {
-        NUMERO = (int)(distances.size() * .7);
+        NUMERO = (int)(distances.size());
         int n = NUMERO;
         std::cout << ">> Interaction_Mat: n  = " << n << std::endl;
         cout << "NUMERO: " << NUMERO << endl;
@@ -135,11 +146,12 @@ Mat Lvl(Mat p23D,
         {
                 pi = p2s.row(distances[i].i);
                 pj = p2s.row(distances[i].j);
-                Pi = p23D.row(distances[i].i);
-                Pj = p23D.row(distances[i].j);
+                // Pi = p23D.row(distances[i].i);
+                // Pj = p23D.row(distances[i].j);
 
                 s = -distances[i].dist * distances[i].dist * distances[i].dist;
-                temp = s * (pi * ortoProj(Pj) / norm(Pj) + pj * ortoProj(Pi) / norm(Pi));
+                // temp = s * (pi * ortoProj(Pj) / norm(Pj) + pj * ortoProj(Pi) / norm(Pi));
+                temp = s * (pi * ortoProj(pj) + pj * ortoProj(pi));
                 // temp.copyTo(L.row(distances[i].i));
                 temp.copyTo(L.row(i));
                 // cout << i << " de " << n << " temp: " << temp << " len: " << temp.size() << endl;
@@ -170,8 +182,8 @@ int GUO(Mat img,
                 return -1;
         }
 
-        p1s  = Mat::zeros(matching_result.p1.rows, 3, CV_64F);
-        p2s  = Mat::zeros(matching_result.p2.rows, 3, CV_64F);
+        p1s = Mat::zeros(matching_result.p1.rows, 3, CV_64F);
+        p2s = Mat::zeros(matching_result.p2.rows, 3, CV_64F);
         p23D = Mat::zeros(matching_result.p2.rows, 3, CV_64F);
 
         if (toSphere(matching_result.p1, matching_result.p2, p1s, p2s, p23D, state.params) < 0)
@@ -180,7 +192,6 @@ int GUO(Mat img,
                 return -1;
         }
 
-        int n = p1s.rows;
         vector<vecDist> distancias;
         Mat ERROR;
         distances(p1s, p2s, distancias);
@@ -190,7 +201,7 @@ int GUO(Mat img,
         // {
         //         cout << distancias[i].i << " " << distancias[i].j << " " << distancias[i].dist << " " << distancias[i].dist2 << endl;
         //         cout << "p2.row(i): " << p2s.row(distancias[i].i) << " -- p2.row(j): " << p2s.row(distancias[i].j) << endl;
-        //         cout << p2s.row(distancias[i].i).dot(p2s.row(distancias[i].j)) << endl << endl;
+        //         // cout << p2s.row(distancias[i].i).dot(p2s.row(distancias[i].j)) << endl << endl;
         // }
         // exit(-1);
 
@@ -211,7 +222,34 @@ int GUO(Mat img,
         // //
         // cout << "DB2" << endl;
         // Descriptor control
-        double lambda = 1.0;
+        double lambda = 10.0;
+        // Mat L = interaction_Mat(matching_result, 1.0);
+        Mat L = Lvl(p23D, p2s, distancias);
+        // cout << "L[0] = " << L.row(0) << endl;
+        // exit(-1);
+        for (int i = 0; i < NUMERO; i++)
+        {
+                ERROR.push_back(distancias[i].dist2 - distancias[i].dist);
+        }
+
+        double det = 0.0;
+        Lo = Moore_Penrose_PInv(L, det);
+        if (det < 1e-6)
+        {
+                cout << "ERROR DET ZERO: det = " << det << endl;
+                return -1;
+        }
+        Mat U_temp = - lambda * Lo * ERROR;
+        // cout << "U_temp = " << U_temp << endl;
+        // cout << "LLEGA (?) 2" << endl;
+
+        Mat U = Mat::zeros(6, 1, CV_64F);
+        U_temp.copyTo(U.rowRange(0, 3));
+
+        // U = lambda * U * norm(ERROR);
+
+        // cout << "DB3" << endl;
+        cout << "U = " << U.t() << endl;
         // cout << "Before norm P1 " << matching_result.p1 << endl;
         // cout << "Before norm P2 " << matching_result.p2 << endl;
 
@@ -236,17 +274,6 @@ int GUO(Mat img,
         // cout << "DB2.1" << endl;
         //         camera_norm(state.params, matching_result);
 
-        // Mat L = interaction_Mat(matching_result, 1.0);
-        Mat L = Lvl(p23D, p2s, distancias);
-        // cout << "L[0] = " << L.row(0) << endl;
-        // exit(-1);
-        for (int i = 0; i < NUMERO; i++)
-        {
-                ERROR.push_back(distancias[i].dist2 - distancias[i].dist);
-        }
-
-        double det = 0.0;
-        Lo = Moore_Penrose_PInv(L, det);
         // cout << "TAMAÑO L = " << L.size() << endl;
         // cout << "TAMAÑO Lo = " << Lo.size() << endl;
         // cout << "TAMAÑO ERROR = " << ERROR.size() << endl;
@@ -261,11 +288,6 @@ int GUO(Mat img,
         // }
 
         // cout << "LLEGA (?) 0.1" << endl;
-        if (det < 1e-6)
-        {
-                cout << "ERROR DET ZERO: det = " << det << endl;
-                return -1;
-        }
         // cout << "LLEGA (?) 0.2" << endl;
         // exit(-1);
         // cout << "DB2.3" << endl;
@@ -275,17 +297,6 @@ int GUO(Mat img,
         //         cout << "After p " << matching_result.p1 << endl << matching_result.p2 << endl;
         // Mat U_temp = -1.0 * lambda * Lo * ERROR.reshape(1, L.cols);
         // cout << "LLEGA (?) 1" << endl;
-        Mat U_temp = -.05 * lambda * Lo * ERROR;
-        // cout << "U_temp = " << U_temp << endl;
-        // cout << "LLEGA (?) 2" << endl;
-
-        Mat U = Mat::zeros(6, 1, CV_64F);
-        U_temp.copyTo(U.rowRange(0, 3));
-
-        U = U * norm(ERROR);
-
-        // cout << "DB3" << endl;
-        cout << "U = " << U.t() << endl;
 
         // exit(-1);
 
