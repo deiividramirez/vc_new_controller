@@ -46,8 +46,8 @@ int main(int argc, char **argv)
 	/************************************************************* CREATING PUBLISHER AND SUBSCRIBER */
 	image_transport::Subscriber image_sub = it.subscribe("/hummingbird/camera_nadir/image_raw", 1, imageCallback);
 	image_transport::Publisher image_pub = it.advertise("matching", 1);
-	// ros::Rate rate(40);
-	ros::Rate rate(120);
+	ros::Rate rate(40);
+	// ros::Rate rate(120);
 
 	/************************************************************************** OPENING DESIRED IMAGE */
 	string image_dir = "/src/vc_controller/src/desired.png";
@@ -57,8 +57,8 @@ int main(int argc, char **argv)
 		cerr << "[ERR] Could not open or find the reference image" << std::endl;
 		return -1;
 	}
-	else 
-	{ 
+	else
+	{
 		cout << "[INFO] Reference image loaded" << std::endl;
 	}
 
@@ -115,7 +115,10 @@ int main(int argc, char **argv)
 		vel_yaw.push_back(state.Vyaw);
 
 		if (matching_result.mean_feature_error < state.params.feature_threshold)
+		{
+			cout << "[INFO] Target reached" << endl << endl;
 			break;
+		}
 
 		// Publish image of the matching
 		image_pub.publish(image_msg);
@@ -153,7 +156,7 @@ int main(int argc, char **argv)
 
 void imageCallback(const sensor_msgs::Image::ConstPtr &msg)
 {
-	cout << "imageCallback" << endl;
+	// cout << "imageCallback" << endl;
 	try
 	{
 		Mat img = cv_bridge::toCvShare(msg, "bgr8")->image;
@@ -174,8 +177,8 @@ void imageCallback(const sensor_msgs::Image::ConstPtr &msg)
 		image_msg->header.stamp = ros::Time::now();
 
 		if (state.initialized)
-			cout << "==============================================\n\n"
-					 << " Vx: " << state.Vx << ", Vy: " << state.Vy << ", Vz: " << state.Vz << ", Vroll: " << state.Vroll << ", Vpitch: " << state.Vpitch << ", Wyaw: " << state.Vyaw << " => average error: " << matching_result.mean_feature_error << endl;
+			cout << " Vx: " << state.Vx << ", Vy: " << state.Vy << ", Vz: " << state.Vz << "\nVroll: " << state.Vroll << ", Vpitch: " << state.Vpitch << ", Wyaw: " << state.Vyaw << "\n==> average error: " << matching_result.mean_feature_error << "<==" << endl
+					 << "===================================================================\n\n";
 	}
 	catch (cv_bridge::Exception &e)
 	{

@@ -61,7 +61,7 @@ void vc_state::initialize(const float &x,const float &y,const float &z,const flo
   this->Z           = z;
   this->Yaw         = yaw;
   this->initialized = true;
-  cout << "Init pose" << endl << "X: " << this->X << endl << "Y: " << this->Y << endl << "Z: " << this->Z << endl;
-  cout << "Roll: " << this->Roll << endl << "Pitch: " << this->Pitch << endl << "Yaw: " << this->Yaw << endl;
+  cout << "Init pose: X: " << this->X << " Y:" << this->Y << " Z:" << this->Z << endl;
+  cout << "Yaw: " << this->Yaw << " Pitch:" << this->Pitch << " Roll:" << this->Roll << endl;
+  // cout << "Init pose" << endl << "X: " << this->X << endl << "Y: " << this->Y << endl << "Z: " << this->Z << endl;
 }
-
