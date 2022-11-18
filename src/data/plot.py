@@ -11,6 +11,7 @@ vyaw = np.loadtxt("Vyaw.txt");
 plt.plot(time,err)
 plt.ylabel('Error Promedio (pixeles)')
 plt.xlabel('Tiempo (s)')
+plt.title('Error promedio en funcion del tiempo')
 plt.show()
 
 fig, ax = plt.subplots()
@@ -22,5 +23,6 @@ legend = ax.legend(loc='upper center', shadow=True)
 
 plt.ylabel('Velocidades (u/s)')
 plt.xlabel('Tiempo (s)')
+plt.title('Velocidades en funcion del tiempo')
 plt.show()
 
