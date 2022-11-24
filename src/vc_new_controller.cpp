@@ -6,6 +6,7 @@ and process the images to obtain the homography.
 */
 
 #include "vc_new_controller.h"
+#include <filesystem>
 
 /* Declaring namespaces */
 using namespace cv;
@@ -29,16 +30,15 @@ vc_state state;
 vc_homograpy_matching_result matching_result;
 
 //  Selector de control
-int contr_sel = 1;
+int contr_sel = 2;
 
-//  Selector de cámara
-int camar_sel = 1;
 // TODO: añadirlo a los argumentos o yaml
+
+int contIMG = 0;
 
 /* Main function */
 int main(int argc, char **argv)
 {
-
 	/***************************************************************************************** INIT */
 	ros::init(argc, argv, "vc_new_controller");
 	ros::NodeHandle nh;
@@ -73,7 +73,7 @@ int main(int argc, char **argv)
 	// ros::Rate rate(120);
 
 	/************************************************************************** OPENING DESIRED IMAGE */
-	string image_dir = "/src/vc_controller/src/desired.png";
+	string image_dir = "/src/vc_new_controller/src/desired.png";
 	state.desired_configuration.img = imread(workspace + image_dir, IMREAD_COLOR);
 	if (state.desired_configuration.img.empty())
 	{
@@ -130,7 +130,7 @@ int main(int argc, char **argv)
 
 	// Create message for the pose
 	trajectory_msgs::MultiDOFJointTrajectory msg;
-	string file_folder = "/src/vc_controller/src/data/";
+	string file_folder = "/src/vc_new_controller/src/data/";
 
 	/******************************************************************************* CYCLE START*/
 	while (ros::ok())
@@ -205,6 +205,11 @@ void imageCallback(const sensor_msgs::Image::ConstPtr &msg)
 
 		cout << "[INFO] Image received" << endl;
 
+		// Save the image
+		string saveIMG = "/src/vc_new_controller/src/data/img/" + to_string(contIMG++) + ".jpg";
+		cout << "[INFOO] Saving image >>" << saveIMG << endl;
+		imwrite(workspace + saveIMG, img);
+
 		// AQUI ES DONDE SE EJECUTA TODOOOOO
 		if (controllers[contr_sel](img, state, matching_result) < 0)
 		{
@@ -228,7 +233,7 @@ void imageCallback(const sensor_msgs::Image::ConstPtr &msg)
 		cout << "[INFO] Matching published" << endl;
 
 		if (state.initialized)
-			cout << " Vx: " << state.Vx << ", Vy: " << state.Vy << ", Vz: " << state.Vz << "\nVroll: " << state.Vroll << ", Vpitch: " << state.Vpitch << ", Wyaw: " << state.Vyaw << "\n==> average error: " << matching_result.mean_feature_error << "<==" << endl
+			cout << "[VELS] Vx: " << state.Vx << ", Vy: " << state.Vy << ", Vz: " << state.Vz << "\nVroll: " << state.Vroll << ", Vpitch: " << state.Vpitch << ", Wyaw: " << state.Vyaw << "\n==> average error: " << matching_result.mean_feature_error << "<==" << endl
 					 << "===================================================================\n\n";
 	}
 	catch (cv_bridge::Exception &e)
