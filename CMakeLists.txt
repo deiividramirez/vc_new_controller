@@ -113,7 +113,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES vc_new_controller
-  CATKIN_DEPENDS cv_bridge image_transport roscpp sensor_msgs trajectory_msgs std_msgs mav_msgs geometry_msgs
+	CATKIN_DEPENDS cv_bridge image_transport roscpp sensor_msgs trajectory_msgs std_msgs mav_msgs geometry_msgs
 #  DEPENDS system_lib
 )
 

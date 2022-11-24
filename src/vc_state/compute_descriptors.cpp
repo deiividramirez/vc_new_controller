@@ -22,6 +22,10 @@ int compute_descriptors(const Mat &img,
 		cout << "No keypoints detected" << endl;
 		return -1;
 	}
+	else
+	{
+		cout << "Keypoints detected: " << kp.size() << endl;
+	}
 	orb->compute(img, kp, descriptors);
 
 	/************************************************************* Using flann for matching*/

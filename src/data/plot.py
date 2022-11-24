@@ -1,6 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+# KLT TRACKER
+# Graficas los 16 errores
+
 err = np.loadtxt("errors.txt");
 time = np.loadtxt("time.txt");
 vx = np.loadtxt("Vx.txt");

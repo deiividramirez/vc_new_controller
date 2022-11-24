@@ -29,7 +29,10 @@ vc_state state;
 vc_homograpy_matching_result matching_result;
 
 //  Selector de control
-int contr_sel = 2;
+int contr_sel = 1;
+
+//  Selector de cámara
+int camar_sel = 1;
 // TODO: añadirlo a los argumentos o yaml
 
 /* Main function */
@@ -42,11 +45,31 @@ int main(int argc, char **argv)
 	state.load(nh);
 
 	image_transport::ImageTransport it(nh);
-
+	image_transport::Subscriber image_sub;
 	/************************************************************* CREATING PUBLISHER AND SUBSCRIBER */
-	image_transport::Subscriber image_sub = it.subscribe("/hummingbird/camera_nadir/image_raw", 1, imageCallback);
+	if (state.params.camara == 0)
+	{
+		cout << "[INFO] Using hummingbird bottom camera" << endl;
+		image_sub = it.subscribe("/hummingbird/camera_nadir/image_raw", 1, imageCallback);
+	}
+	else if (state.params.camara == 1)
+	{
+		cout << "[INFO] Using iris front camera" << endl;
+		image_sub = it.subscribe("/iris/camera_front_camera/image_raw", 1, imageCallback);
+	}
+	else if (state.params.camara == 2)
+	{
+		cout << "[INFO] Using iris bottom camera" << endl;
+		image_sub = it.subscribe("/iris/camera_under_camera/image_raw", 1, imageCallback);
+	}
+	else
+	{
+		cout << "[ERROR] There is no camera with that number" << endl;
+		return -1;
+	}
+
 	image_transport::Publisher image_pub = it.advertise("matching", 1);
-	ros::Rate rate(40);
+	ros::Rate rate(30);
 	// ros::Rate rate(120);
 
 	/************************************************************************** OPENING DESIRED IMAGE */
@@ -79,8 +102,23 @@ int main(int argc, char **argv)
 							 state.desired_configuration.descriptors);
 
 	/******************************************************************************* MOVING TO A POSE */
-	ros::Publisher pos_pub = nh.advertise<trajectory_msgs::MultiDOFJointTrajectory>("/hummingbird/command/trajectory", 1);
-	ros::Subscriber pos_sub = nh.subscribe<geometry_msgs::Pose>("/hummingbird/ground_truth/pose", 1, poseCallback);
+	ros::Publisher pos_pub;
+	ros::Subscriber pos_sub;
+
+	if (state.params.camara == 0)
+	{
+		cout << "[INFO] Hummingbird trajectory and pose" << endl
+				 << endl;
+		pos_pub = nh.advertise<trajectory_msgs::MultiDOFJointTrajectory>("/hummingbird/command/trajectory", 1);
+		pos_sub = nh.subscribe<geometry_msgs::Pose>("/hummingbird/ground_truth/pose", 1, poseCallback);
+	}
+	else if (state.params.camara == 1 || state.params.camara == 2)
+	{
+		cout << "[INFO] Iris trajectory and pose" << endl
+				 << endl;
+		pos_pub = nh.advertise<trajectory_msgs::MultiDOFJointTrajectory>("/iris/command/trajectory", 1);
+		pos_sub = nh.subscribe<geometry_msgs::Pose>("/iris/ground_truth/pose", 1, poseCallback);
+	}
 
 	/**************************************************************************** data for graphics */
 	vector<float> vel_x;
@@ -116,11 +154,15 @@ int main(int argc, char **argv)
 
 		if (matching_result.mean_feature_error < state.params.feature_threshold)
 		{
-			cout << "[INFO] Target reached" << endl << endl;
+			cout << endl
+					 << "[INFO] Target reached" << endl
+					 << endl;
 			break;
 		}
 
 		// Publish image of the matching
+		cout << endl
+				 << "[INFO] Publishing image" << endl;
 		image_pub.publish(image_msg);
 
 		// Update state with the current control
@@ -156,16 +198,23 @@ int main(int argc, char **argv)
 
 void imageCallback(const sensor_msgs::Image::ConstPtr &msg)
 {
-	// cout << "imageCallback" << endl;
+	cout << "[INFO] ImageCallback function" << endl;
 	try
 	{
 		Mat img = cv_bridge::toCvShare(msg, "bgr8")->image;
 
-		//         funlist controllers[1] = {&homography};
+		cout << "[INFO] Image received" << endl;
 
 		// AQUI ES DONDE SE EJECUTA TODOOOOO
 		if (controllers[contr_sel](img, state, matching_result) < 0)
+		{
+			cout << "[ERROR] Falló controlador" << endl;
 			return;
+		}
+		else
+		{
+			cout << "[INFO] Controlador ejecutado" << endl;
+		}
 
 		/************************************************************* Prepare message */
 		image_msg = cv_bridge::CvImage(std_msgs::Header(), sensor_msgs::image_encodings::BGR8, matching_result.img_matches).toImageMsg();
@@ -175,6 +224,8 @@ void imageCallback(const sensor_msgs::Image::ConstPtr &msg)
 		image_msg->is_bigendian = false;
 		image_msg->step = sizeof(unsigned char) * matching_result.img_matches.cols * 3;
 		image_msg->header.stamp = ros::Time::now();
+
+		cout << "[INFO] Matching published" << endl;
 
 		if (state.initialized)
 			cout << " Vx: " << state.Vx << ", Vy: " << state.Vy << ", Vz: " << state.Vz << "\nVroll: " << state.Vroll << ", Vpitch: " << state.Vpitch << ", Wyaw: " << state.Vyaw << "\n==> average error: " << matching_result.mean_feature_error << "<==" << endl
@@ -194,6 +245,8 @@ void imageCallback(const sensor_msgs::Image::ConstPtr &msg)
 */
 void poseCallback(const geometry_msgs::Pose::ConstPtr &msg)
 {
+	// cout << endl << "[INFO] poseCallback function" << endl;
+
 	// Creating quaternion
 	tf::Quaternion q(msg->orientation.x, msg->orientation.y, msg->orientation.z, msg->orientation.w);
 	// Creatring rotation matrix ffrom quaternion
@@ -208,7 +261,7 @@ void poseCallback(const geometry_msgs::Pose::ConstPtr &msg)
 	// setting the position if its the first time
 	if (!state.initialized)
 	{
-		//     state.set_gains(params);
+		cout << "[INFO] Setting initial position" << endl;
 		state.initialize((float)msg->position.x, (float)msg->position.y, (float)msg->position.z, yaw);
 	}
 }

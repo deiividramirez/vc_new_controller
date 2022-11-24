@@ -48,44 +48,57 @@ int toSphere(Mat p1,               // Points in the target image
         return 0;
 }
 
-int distances(Mat p1,                     // Points in the target image
-              Mat p2,                     // Points in the actual image
-              vector<vecDist> &distancias // Vector of distances struct
+int distances(Mat p1,                      // Points in the target image
+              Mat p2,                      // Points in the actual image
+              vector<vecDist> &distancias, // Vector of distances struct
+              vc_parameters &params        // Parameters of the camera
 )
 {
         vecDist tmpDist;    // Temporal struct for calculation
         double dist, dist2; // Temporal variables for distance calculation
+        int NUM, i, j;      // Variables for the loop
 
-        for (int i_temp = 0; i_temp < 16; i_temp++)
+        NUM = 16; // Number of points to calculate the distance
+
+        for (int i_temp = 0; i_temp < NUM; i_temp++)
         {
-                for (int j_temp = 0; j_temp < 16; j_temp++)
+                for (int j_temp = 0; j_temp < NUM; j_temp++)
                 {
-                        int i = (int) rand() % p1.rows;
-                        int j = (int) rand() % p2.rows;
+                                i = (int) rand() % p2.rows;
+                                j = (int) rand() % p2.rows;
                         if (i != j)
                         {
                                 dist = sqrt(2 - 2 * (double)(p2.row(i).dot(p2.row(j))));
                                 dist2 = sqrt(2 - 2 * (double)(p1.row(i).dot(p1.row(j))));
-                                if (dist <= 1e-9 ||
-                                    dist2 <= 1e-9 ||
-                                    //     isnan(dist) ||
-                                    //     isnan(dist2) ||
-                                    //     isinf(dist) ||
-                                    //     isinf(dist2) ||
-                                    p2.row(i).dot(p2.row(j)) > .97 ||
-                                    p1.row(i).dot(p1.row(j)) > .97)
+                                if (dist <= 1e-9
+                                    || dist2 <= 1e-9
+                                    || p2.row(i).dot(p2.row(j)) > .97 
+                                    || p1.row(i).dot(p1.row(j)) > .97
+                                    )
                                 {
                                         continue;
                                 }
 
                                 tmpDist.i = i;
                                 tmpDist.j = j;
-                                tmpDist.dist = 1 / dist;
-                                tmpDist.dist2 = 1 / dist2;
+                                if (params.control == 1)
+                                {
+                                        tmpDist.dist = 1 / dist;
+                                        tmpDist.dist2 = 1 / dist2;
+                                }
+                                else if (params.control == 2)
+                                {
+                                        tmpDist.dist = dist;
+                                        tmpDist.dist2 = dist2;
+                                }
+                                else
+                                {
+                                        cout << "Error: Control variable is not valid" << endl;
+                                        return -1;
+                                }
                                 distancias.push_back(tmpDist);
                         }
                 }
-
         }
         return 0;
 }
@@ -111,8 +124,9 @@ Mat ortoProj(Mat p1)
         return OP;
 }
 
-Mat Lvl(Mat p2s,                   // Points of the actual image in the sphere
-        vector<vecDist> &distances // Vector of distances struct with actual distances
+Mat Lvl(Mat p2s,                    // Points of the actual image in the sphere
+        vector<vecDist> &distances, // Vector of distances struct with actual distances
+        vc_parameters &params       // Parameters of the camera
 )
 {
         int n = distances.size(); // Number of distances
@@ -128,7 +142,19 @@ Mat Lvl(Mat p2s,                   // Points of the actual image in the sphere
                 pi = p2s.row(distances[i].i);
                 pj = p2s.row(distances[i].j);
 
-                s = -distances[i].dist * distances[i].dist * distances[i].dist;
+                if (params.control == 1)
+                {
+                        s = -distances[i].dist * distances[i].dist * distances[i].dist;
+                }
+                else if (params.control == 2)
+                {
+                        s = distances[i].dist;
+                }
+                else
+                {
+                        cout << "Error: Control parameter not valid" << endl;
+                        return L;
+                }
                 temp = s * (pi * ortoProj(pj) + pj * ortoProj(pi));
                 temp.copyTo(L.row(i));
         }
@@ -168,14 +194,14 @@ int GUO(Mat img,                                      // Image to be processed
 
         // Calculate the distances between the points in the sphere
         // and sorting these distance for choose the greater ones
-        distances(p1s, p2s, distancias);
-        sort(distancias.begin(), distancias.end(), mayorQue);
+        distances(p1s, p2s, distancias, state.params);
+        // sort(distancias.begin(), distancias.end(), mayorQue);
 
         // Choosing the gain for the control law
         double lambda = 5.0;
 
         // Get interaction matrix and error vector with distances
-        L = Lvl(p2s, distancias);
+        L = Lvl(p2s, distancias, state.params);
         for (int i = 0; i < distancias.size(); i++)
         // for (int i = 0; i < 16; i++)
         {

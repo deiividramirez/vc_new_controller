@@ -30,6 +30,8 @@ typedef struct vc_parameters
     int patchSize = 30;
     int fastThreshold = 20;
     float flann_ratio = 0.7;
+    int control = 1;
+    int camara = 1;
 
     // Camera parameters
     cv::Mat K;
