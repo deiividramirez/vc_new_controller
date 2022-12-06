@@ -78,6 +78,31 @@ int compute_descriptors(const Mat &img,
 	Mat a = Mat(result.p1);
 	Mat b = Mat(result.p2);
 	result.mean_feature_error = norm(a, b) / ((double)result.p1.rows);
+
+	cout << "[INFO] Mean feature error: " << result.mean_feature_error << endl;
+
+	// cout << "Result p1: " << result.p1 << endl;
+	// cout << "Result p2: " << result.p2 << endl;
+	// // 752 x 480
+	// exit(-1);
+	// // circle the keypoints in the image
+	// for (int i = 0; i < result.p1.rows; i++)
+	// {
+	// 	circle(img, Point(result.p1.at<double>(i, 0), result.p1.at<double>(i, 1)), 5, Scalar(0, 0, 255), 2);
+	// }
+	
+	// for (int i = 0; i < result.p2.rows; i++)
+	// {
+	// 	circle(desired_configuration.img, Point(result.p2.at<double>(i, 0), result.p2.at<double>(i, 1)), 5, Scalar(0, 0, 255), 2);
+	// }
+
+	// // show the image
+	// imshow("ORB", img);
+	// imshow("ORB desired", desired_configuration.img);
+	// waitKey(0);
+
+	// exit(-1);
+
 	// Finding homography
 	// 	result.H = findHomography(result.p1, result.p2 ,RANSAC, 0.5);
 	// 	if (result.H.rows==0)

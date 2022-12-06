@@ -15,8 +15,8 @@ typedef struct vecDist
 
 int toSphere(Mat p1,               // Points in the target image
              Mat p2,               // Points in the actual image
-             Mat &p1s,             // Empty matrix for 3D recovery direction of p1 points
-             Mat &p2s,             // Empty matrix for 3D recovery direction of p2 points
+             Mat &p1s,             // Empty matrix for 3D recovery direction on sphere of p1 points
+             Mat &p2s,             // Empty matrix for 3D recovery direction on sphere of p2 points
              vc_parameters &params // Parameters of the camera
 )
 {
@@ -58,22 +58,35 @@ int distances(Mat p1,                      // Points in the target image
         double dist, dist2; // Temporal variables for distance calculation
         int NUM, i, j;      // Variables for the loop
 
-        NUM = 16; // Number of points to calculate the distance
+        // NUM = 16; // Number of points to calculate the distance
+        NUM = p2.rows; // Number of points to calculate the distance
+        // if (p1.rows < 100)
+        // {
+        //         NUM = p1.rows;
+        // }
+        // else
+        // {
+        //         NUM = 100;
+        // }
 
         for (int i_temp = 0; i_temp < NUM; i_temp++)
         {
                 for (int j_temp = 0; j_temp < NUM; j_temp++)
                 {
-                                i = (int) rand() % p2.rows;
-                                j = (int) rand() % p2.rows;
+                        // i = (int) rand() % p2.rows;
+                        // j = (int) rand() % p2.rows;
+                        i = i_temp;
+                        j = j_temp;
                         if (i != j)
                         {
-                                dist = sqrt(2 - 2 * (double)(p2.row(i).dot(p2.row(j))));
-                                dist2 = sqrt(2 - 2 * (double)(p1.row(i).dot(p1.row(j))));
+                                double dot1 = (double)(p2.row(i).dot(p2.row(j)));
+                                double dot2 = (double)(p1.row(i).dot(p1.row(j)));
+                                dist = sqrt(2 - 2 * dot1);
+                                dist2 = sqrt(2 - 2 * dot2);
                                 if (dist <= 1e-9
                                     || dist2 <= 1e-9
-                                    || p2.row(i).dot(p2.row(j)) > .97 
-                                    || p1.row(i).dot(p1.row(j)) > .97
+                                //     || dot1 > .97 
+                                //     || dot2 > .97
                                     )
                                 {
                                         continue;
@@ -132,7 +145,7 @@ Mat Lvl(Mat p2s,                    // Points of the actual image in the sphere
         int n = distances.size(); // Number of distances
         // int n = 16; // Number of distances
         std::cout << ">> Size Interaction Matrix: [" << n << "x3]" << std::endl;
-
+        
         Mat temp = Mat::zeros(3, 1, CV_64F); // Temp vector for calculation
         Mat L = Mat::zeros(n, 3, CV_64F);    // Interaction matrix
         Mat pi, pj;                          // Temporal points for calculation
@@ -171,12 +184,12 @@ int GUO(Mat img,                                      // Image to be processed
 {
         cout << "--------------------> EMPIEZA <--------------------" << endl;
 
-        // Compute the matching between the images using ORB as detector and descriptor
-        if (compute_descriptors(img, state.params, state.desired_configuration, matching_result) < 0)
-        {
-                cout << "Error en compute_descriptors" << endl;
-                return -1;
-        }
+        // // Compute the matching between the images using ORB as detector and descriptor
+        // if (compute_descriptors(img, state.params, state.desired_configuration, matching_result) < 0)
+        // {
+        //         cout << "Error en compute_descriptors" << endl;
+        //         return -1;
+        // }
 
         // Temporal matrixes for calculation
         Mat p1s, p2s, p23D, Lo, ERROR, U, U_temp, L;
@@ -206,8 +219,10 @@ int GUO(Mat img,                                      // Image to be processed
         // for (int i = 0; i < 16; i++)
         {
                 ERROR.push_back(distancias[i].dist2 - distancias[i].dist);
+                cout << i << " Distancia: " << distancias[i].dist << " Distancia2: " << distancias[i].dist2 << endl;
         }
 
+        matching_result.mean_feature_error = norm(ERROR, NORM_L2);
         // Get the Penrose pseudo-inverse of the interaction matrix
         double det = 0.0;
         Lo = Moore_Penrose_PInv(L, det);
@@ -218,7 +233,14 @@ int GUO(Mat img,                                      // Image to be processed
         }
 
         // Get the control law with dimentions 3x1 in translation
-        U_temp = -lambda * Lo * ERROR;
+        if (norm(ERROR, NORM_L2) > 0.1)
+        {
+                U_temp = -lambda * Lo * ERROR;
+        }
+        else
+        {
+                U_temp = -3.5*lambda * Lo * ERROR;
+        }
 
         // FIll with zeros the control law in rotation 3x1
         U = Mat::zeros(6, 1, CV_64F);

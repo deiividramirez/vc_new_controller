@@ -15,7 +15,7 @@ for img_name in img_names:
     imgs.append(img)
 
 # save images into mp4
-fps = 10
+fps = 20
 size = (imgs[0].shape[1], imgs[0].shape[0])
 videoWriter = cv2.VideoWriter('./src/data/img.mp4', cv2.VideoWriter_fourcc('m', 'p', '4', 'v'), fps, size)
 for img in imgs:

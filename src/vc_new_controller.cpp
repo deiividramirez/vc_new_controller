@@ -6,7 +6,7 @@ and process the images to obtain the homography.
 */
 
 #include "vc_new_controller.h"
-#include <filesystem>
+#include <opencv2/video/tracking.hpp>
 
 /* Declaring namespaces */
 using namespace cv;
@@ -32,9 +32,53 @@ vc_homograpy_matching_result matching_result;
 //  Selector de control
 int contr_sel = 2;
 
-// TODO: añadirlo a los argumentos o yaml
-
+// Conteo de imágenes
 int contIMG = 0;
+
+Mat img_old, img_points;
+
+Mat Ordenamiento(Mat puntos, int opc)
+{
+	bool check;
+	Mat orden = Mat::zeros(1, puntos.rows, CV_32SC1), p2 = puntos.clone();
+	for (int i = 0; i < p2.rows; i++)
+	{
+		orden.at<int>(0, i) = i;
+	}
+
+	cout << "Orden: " << orden << endl;
+	for (int i = 0; i < p2.rows; i++)
+	{
+		for (int j = 0; j < p2.rows - 1; j++)
+		{
+			if (opc == 1)
+			{
+				check = (p2.at<double>(i, 0) + p2.at<double>(i, 1) < p2.at<double>(j, 0) + p2.at<double>(j, 1));
+			}
+			else
+			{
+				check = (p2.at<double>(i, 0) - p2.at<double>(i, 1) < p2.at<double>(j, 0) - p2.at<double>(j, 1));
+			}
+			if (check)
+			{
+				double temp = p2.at<double>(i, 0);
+				p2.at<double>(i, 0) = p2.at<double>(j, 0);
+				p2.at<double>(j, 0) = temp;
+
+				temp = p2.at<double>(i, 1);
+				p2.at<double>(i, 1) = p2.at<double>(j, 1);
+				p2.at<double>(j, 1) = temp;
+
+				int temp2 = orden.at<int>(0, i);
+				orden.at<int>(0, i) = orden.at<int>(0, j);
+				orden.at<int>(0, j) = temp2;
+			}
+		}
+	}
+
+	cout << "Orden: " << orden << endl;
+	return orden;
+}
 
 /* Main function */
 int main(int argc, char **argv)
@@ -73,7 +117,7 @@ int main(int argc, char **argv)
 	// ros::Rate rate(120);
 
 	/************************************************************************** OPENING DESIRED IMAGE */
-	string image_dir = "/src/vc_new_controller/src/desired.png";
+	string image_dir = "/src/vc_new_controller/src/desired.jpg";
 	state.desired_configuration.img = imread(workspace + image_dir, IMREAD_COLOR);
 	if (state.desired_configuration.img.empty())
 	{
@@ -157,6 +201,7 @@ int main(int argc, char **argv)
 			cout << endl
 					 << "[INFO] Target reached" << endl
 					 << endl;
+			waitKey(0);
 			break;
 		}
 
@@ -201,26 +246,168 @@ void imageCallback(const sensor_msgs::Image::ConstPtr &msg)
 	cout << "[INFO] ImageCallback function" << endl;
 	try
 	{
-		Mat img = cv_bridge::toCvShare(msg, "bgr8")->image;
-
+		Mat actual = cv_bridge::toCvShare(msg, "bgr8")->image;
 		cout << "[INFO] Image received" << endl;
 
-		// Save the image
 		string saveIMG = "/src/vc_new_controller/src/data/img/" + to_string(contIMG++) + ".jpg";
-		cout << "[INFOO] Saving image >>" << saveIMG << endl;
-		imwrite(workspace + saveIMG, img);
+		imwrite(workspace + saveIMG, actual);
+		cout << "[INFO] << Image saved >>" << saveIMG << endl;
 
-		// AQUI ES DONDE SE EJECUTA TODOOOOO
-		if (controllers[contr_sel](img, state, matching_result) < 0)
+		// Mat actual_gray;
+		// cvtColor(actual, actual_gray, COLOR_BGR2GRAY);
+
+		// Mat corner;
+		// goodFeaturesToTrack(actual_gray, corner, 100, 0.01, 10);
+		// // print corner and size
+		// cout << "[INFO] Corner size: " << corner.size() << endl;
+		// cout << "[INFO] Corner: " << corner << endl;
+		// cout << corner.at<float>(0, 0) << endl;
+		// cout << corner.at<float>(0, 1) << endl;
+
+		if (contIMG == 1)
 		{
-			cout << "[ERROR] Falló controlador" << endl;
-			return;
+
+			cout << endl
+					 << "[INFO] Detecting keypoints" << endl;
+
+			if (compute_descriptors(actual, state.params, state.desired_configuration, matching_result) < 0)
+			{
+				cout << "[ERROR] Error en compute_descriptors" << endl;
+				return;
+			}
+
+			Mat esquinas1 = Ordenamiento(matching_result.p2, 1);
+			Mat esquinas2 = Ordenamiento(matching_result.p2, 2);
+
+			int start = (int)rand() % 10 + 5;
+			int end = matching_result.p2.rows - 1 - start;
+
+			img_points = Mat(4, 2, CV_32F);
+			img_points.at<Point2f>(0, 0) = Point2f(matching_result.p2.at<double>(esquinas1.at<int>(0, start), 0), matching_result.p2.at<double>(esquinas1.at<int>(0, start), 1));
+			img_points.at<Point2f>(1, 0) = Point2f(matching_result.p2.at<double>(esquinas1.at<int>(0, end), 0), matching_result.p2.at<double>(esquinas1.at<int>(0, end), 1));
+			img_points.at<Point2f>(2, 0) = Point2f(matching_result.p2.at<double>(esquinas2.at<int>(0, start), 0), matching_result.p2.at<double>(esquinas2.at<int>(0, start), 1));
+			img_points.at<Point2f>(3, 0) = Point2f(matching_result.p2.at<double>(esquinas2.at<int>(0, end), 0), matching_result.p2.at<double>(esquinas2.at<int>(0, end), 1));
+
+			Mat temporal = Mat::zeros(4, 2, CV_32F);
+			temporal.at<Point2f>(0, 0) = Point2f(matching_result.p1.at<double>(esquinas1.at<int>(0, start), 0), matching_result.p1.at<double>(esquinas1.at<int>(0, start), 1));
+			temporal.at<Point2f>(1, 0) = Point2f(matching_result.p1.at<double>(esquinas1.at<int>(0, end), 0), matching_result.p1.at<double>(esquinas1.at<int>(0, end), 1));
+			temporal.at<Point2f>(2, 0) = Point2f(matching_result.p1.at<double>(esquinas2.at<int>(0, start), 0), matching_result.p1.at<double>(esquinas2.at<int>(0, start), 1));
+			temporal.at<Point2f>(3, 0) = Point2f(matching_result.p1.at<double>(esquinas2.at<int>(0, end), 0), matching_result.p1.at<double>(esquinas2.at<int>(0, end), 1));
+			cout << "[INFO] temporal: " << temporal << endl;
+			temporal.convertTo(matching_result.p1, CV_64F);
+
+			temporal = Mat::zeros(4, 2, CV_32F);
+			temporal.at<Point2f>(0, 0) = Point2f(matching_result.p2.at<double>(esquinas1.at<int>(0, start), 0), matching_result.p2.at<double>(esquinas1.at<int>(0, start), 1));
+			temporal.at<Point2f>(1, 0) = Point2f(matching_result.p2.at<double>(esquinas1.at<int>(0, end), 0), matching_result.p2.at<double>(esquinas1.at<int>(0, end), 1));
+			temporal.at<Point2f>(2, 0) = Point2f(matching_result.p2.at<double>(esquinas2.at<int>(0, start), 0), matching_result.p2.at<double>(esquinas2.at<int>(0, start), 1));
+			temporal.at<Point2f>(3, 0) = Point2f(matching_result.p2.at<double>(esquinas2.at<int>(0, end), 0), matching_result.p2.at<double>(esquinas2.at<int>(0, end), 1));
+			cout << "[INFO] temporal: " << temporal << endl;
+			temporal.convertTo(matching_result.p2, CV_64F);
+
+			cout << "[INFO] img_points: " << img_points << endl;
+			cout << "[INFO] matching_result.p1: " << matching_result.p1 << endl;
+			cout << "[INFO] matching_result.p2: " << matching_result.p2 << endl;
+			// exit(-1);
+
+			// img_points = Mat(matching_result.p2.size(), CV_32F);
+			// for (int i = 0; i < matching_result.p2.rows; i++)
+			// {
+			// 	img_points.at<Point2f>(i, 0) = Point2f(matching_result.p2.at<double>(i, 0), matching_result.p2.at<double>(i, 1));
+			// }
+
+			img_old = actual;
 		}
 		else
 		{
-			cout << "[INFO] Controlador ejecutado" << endl;
-		}
+			Mat img_new = actual;
 
+			// AQUI ES DONDE SE EJECUTA TODOOOOO
+			if (controllers[contr_sel](actual, state, matching_result) < 0)
+			{
+				cout << "[ERROR] Controller failed" << endl;
+				return;
+			}
+			else
+			{
+				cout << "[INFO] Controller part has been executed" << endl;
+			}
+
+			// KLT tracker for the next iteration
+			Mat new_points, status, error;
+			Mat img_old_gray, img_new_gray;
+			cvtColor(img_old, img_old_gray, COLOR_BGR2GRAY);
+			cvtColor(img_new, img_new_gray, COLOR_BGR2GRAY);
+			// matching_result.p2 = corner.clone();
+			calcOpticalFlowPyrLK(img_old_gray, img_new_gray, img_points, new_points, status, error);
+
+			// Clean matching_result.p2 and paste new_points
+			// matching_result.p2 = Mat::zeros(new_points.size(), new_points.type());
+			// new_points.copyTo(matching_result.p2);
+
+			// matching_result.p2 = new_points.clone();
+
+			// print the results
+			// imshow("Matching", matching_result.img_matches);
+			// waitKey(1);
+			Mat desired_temp = state.desired_configuration.img.clone();
+			for (int i = 0; i < matching_result.p1.rows; i++)
+			{
+				// cout << i << ": " << matching_result.p1.at<double>(i, 0) << " " << matching_result.p1.at<double>(i, 1) << endl;
+				circle(desired_temp, Point2f(matching_result.p1.at<double>(i, 0), matching_result.p1.at<double>(i, 1)), 3, Scalar(0, 0, 255), -1);
+				// cout << i << ": " << img_points.at<Point2f>(i, 0) << endl;
+				// circle(img_old, img_points.at<Point2f>(i, 0), 3, Scalar(0, 0, 255), -1);
+				// circle(img_old, new_points.at<Point2f>(i, 0), 3, Scalar(255, 0, 0), -1);
+			}
+			for (int i = 0; i < new_points.rows; i++)
+			{
+				// cout << i << ": " << new_points.at<Point2f>(i, 0) << endl;
+				circle(desired_temp, new_points.at<Point2f>(i, 0), 3, Scalar(255, 0, 0), -1);
+				circle(actual, new_points.at<Point2f>(i, 0), 3, Scalar(255, 0, 0), -1);
+				circle(actual, img_points.at<Point2f>(i, 0), 3, Scalar(0, 0, 255), -1);
+			}
+
+			// cout << "[INFO] matching_result.p1: " << matching_result.p1.size() << endl;
+			// cout << "[INFO] matching_result.p2: " << matching_result.p2.size() << endl;
+			// exit(-1);
+
+			// imshow("Image old", img_old);
+			imshow("Image", actual);
+			imshow("Desired", desired_temp);
+			waitKey(1);
+
+			// cout << "New points size: " << new_points.size() << endl;
+			// cout << "New points: " << new_points << endl;
+			// cout << "Status size: " << status.size() << endl;
+			// cout << "Status: " << status.t() << endl;
+
+			// reconvert from CV_32F to CV_64F
+			// Mat img_points_temp = Mat(new_points.size(), CV_64F);
+			// for (int i = 0; i < new_points.rows; i++)
+			// {
+			// 	img_points_temp.at<Point2d>(i, 0) = Point2d(new_points.at<Point2f>(i, 0).x, new_points.at<Point2f>(i, 0).y);
+			// }
+
+			new_points.convertTo(matching_result.p2, CV_64F);
+			// matching_result.p2 = img_points_temp.clone();
+			img_points = new_points.clone();
+			actual.copyTo(img_old);
+
+			// Mat a = Mat(matching_result.p1);
+			// Mat b = Mat(matching_result.p2);
+			// matching_result.mean_feature_error = norm(a, b) / ((double)matching_result.p1.rows);
+			// // Finding homography
+			// matching_result.H = findHomography(matching_result.p1, matching_result.p2, RANSAC, 0.5);
+			// if (matching_result.H.rows == 0)
+			// 	return -1;
+			// /************************************************************* Draw matches */
+
+			// matching_result.img_matches = Mat::zeros(img.rows, img.cols * 2, img.type());
+			// drawMatches(state.desired_configuration.img, state.desired_configuration.kp, img, kp,
+			// 						goodMatches, matching_result.img_matches,
+			// 						Scalar::all(-1), Scalar::all(-1), vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
+
+			// exit(-1);
+		}
 		/************************************************************* Prepare message */
 		image_msg = cv_bridge::CvImage(std_msgs::Header(), sensor_msgs::image_encodings::BGR8, matching_result.img_matches).toImageMsg();
 		image_msg->header.frame_id = "matching_image";
@@ -277,5 +464,20 @@ void writeFile(vector<float> &vec, const string &name)
 	myfile.open(name);
 	for (int i = 0; i < vec.size(); i++)
 		myfile << vec[i] << endl;
+	myfile.close();
+}
+
+void writeMatrix(Mat &mat, const string &name)
+{
+	ofstream myfile;
+	myfile.open(name);
+	for (int i = 0; i < mat.rows; i++)
+	{
+		for (int j = 0; j < mat.cols; j++)
+		{
+			myfile << mat.at<float>(i, j) << " ";
+		}
+		myfile << endl;
+	}
 	myfile.close();
 }
