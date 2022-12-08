@@ -32,6 +32,8 @@ typedef struct vc_parameters
     float flann_ratio = 0.7;
     int control = 1;
     int camara = 1;
+    float gainv = 2.;
+    float gainw = 2.;
 
     // Camera parameters
     cv::Mat K;

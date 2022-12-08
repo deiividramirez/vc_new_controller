@@ -29,6 +29,7 @@ class vc_state {
         float Kw=1.0;
         float dt=0.025;
         float t=0;
+        float lambda = 0;
 
         // Image proessing parameters
         vc_parameters params;

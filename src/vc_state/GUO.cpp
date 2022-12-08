@@ -106,7 +106,7 @@ int distances(Mat p1,                      // Points in the target image
                                 }
                                 else
                                 {
-                                        cout << "Error: Control variable is not valid" << endl;
+                                        cout << "[ERROR] Control variable is not valid" << endl;
                                         return -1;
                                 }
                                 distancias.push_back(tmpDist);
@@ -144,7 +144,7 @@ Mat Lvl(Mat p2s,                    // Points of the actual image in the sphere
 {
         int n = distances.size(); // Number of distances
         // int n = 16; // Number of distances
-        std::cout << ">> Size Interaction Matrix: [" << n << "x3]" << std::endl;
+        std::cout << std::endl << "[INFO] Size Interaction Matrix: [" << n << "x3]" << std::endl << std::endl;
         
         Mat temp = Mat::zeros(3, 1, CV_64F); // Temp vector for calculation
         Mat L = Mat::zeros(n, 3, CV_64F);    // Interaction matrix
@@ -165,7 +165,7 @@ Mat Lvl(Mat p2s,                    // Points of the actual image in the sphere
                 }
                 else
                 {
-                        cout << "Error: Control parameter not valid" << endl;
+                        cout << "[Error] Control parameter not valid" << endl;
                         return L;
                 }
                 temp = s * (pi * ortoProj(pj) + pj * ortoProj(pi));
@@ -177,12 +177,12 @@ Mat Lvl(Mat p2s,                    // Points of the actual image in the sphere
         return L;
 }
 
-int GUO(Mat img,                                      // Image to be processed
-        vc_state &state,                              // State of the camera
-        vc_homograpy_matching_result &matching_result // Result of the matcher matching
+int GUO(Mat img,                                       // Image to be processed
+        vc_state &state,                               // State of the camera
+        vc_homograpy_matching_result &matching_result  // Result of the matcher matching
 )
 {
-        cout << "--------------------> EMPIEZA <--------------------" << endl;
+        cout << endl << "--------------------> EMPIEZA <--------------------" << endl;
 
         // // Compute the matching between the images using ORB as detector and descriptor
         // if (compute_descriptors(img, state.params, state.desired_configuration, matching_result) < 0)
@@ -201,7 +201,7 @@ int GUO(Mat img,                                      // Image to be processed
         // Send images points to sphere model by generic camera model
         if (toSphere(matching_result.p1, matching_result.p2, p1s, p2s, state.params) < 0)
         {
-                cout << "Error en toSphere" << endl;
+                cout << "[ERROR] Error en toSphere" << endl;
                 return -1;
         }
 
@@ -211,7 +211,7 @@ int GUO(Mat img,                                      // Image to be processed
         // sort(distancias.begin(), distancias.end(), mayorQue);
 
         // Choosing the gain for the control law
-        double lambda = 5.0;
+        float lambda = state.params.gainv;
 
         // Get interaction matrix and error vector with distances
         L = Lvl(p2s, distancias, state.params);
@@ -222,38 +222,52 @@ int GUO(Mat img,                                      // Image to be processed
                 cout << i << " Distancia: " << distancias[i].dist << " Distancia2: " << distancias[i].dist2 << endl;
         }
 
+        // Mat a = Mat(matching_result.p1);
+	// Mat b = Mat(matching_result.p2);
+	// matching_result.mean_feature_error = norm(a, b) / ((double)matching_result.p1.rows);
+
         matching_result.mean_feature_error = norm(ERROR, NORM_L2);
+        // Mat a = Mat(matching_result.p1);
+	// Mat b = Mat(matching_result.p2);
+	// matching_result.mean_feature_error = norm(a, b) / ((double)matching_result.p1.rows);
         // Get the Penrose pseudo-inverse of the interaction matrix
         double det = 0.0;
         Lo = Moore_Penrose_PInv(L, det);
         if (det < 1e-6)
         {
-                cout << "ERROR DET ZERO: det = " << det << endl;
+                cout << "[ERROR] DET = ZERO --> det = " << det << endl;
                 return -1;
         }
 
         // Get the control law with dimentions 3x1 in translation
-        if (norm(ERROR, NORM_L2) > 0.1)
-        {
-                U_temp = -lambda * Lo * ERROR;
-        }
-        else
-        {
-                U_temp = -3.5*lambda * Lo * ERROR;
-        }
+        // if (matching_result.mean_feature_error > 0.1)
+        // {
+        //         U_temp = -lambda * Lo * ERROR;
+        // }
+        // else
+        // {
+        //         U_temp = -2 * lambda * Lo * ERROR;
+        // }
+
+        double l0 = 2*lambda, linf = lambda, lprima = 1;
+        double lambda_temp = (l0 - linf) * exp(-(lprima*matching_result.mean_feature_error)/(l0 - linf)) + linf;
+
+        U_temp = -lambda_temp * Lo * ERROR;
 
         // FIll with zeros the control law in rotation 3x1
         U = Mat::zeros(6, 1, CV_64F);
         U_temp.copyTo(U.rowRange(0, 3));
-        cout << "U = " << U.t() << endl;
+        cout << endl << "[INFO] Lambda: " << linf << " < " << lambda_temp << " < " << l0 << endl;
+        cout << "[CONTROL] U = " << U.t() << endl;
 
         // Send the control law to the camera
-        state.Vx = (float)U.at<double>(1, 0);
-        state.Vy = (float)U.at<double>(0, 0);
-        state.Vz = (float)U.at<double>(2, 0);
+        state.lambda = lambda_temp;
+        state.Vx = (float) U.at<double>(1, 0);
+        state.Vy = (float) U.at<double>(0, 0);
+        state.Vz = (float) U.at<double>(2, 0);
         // state.Vroll  = (float) U.at<double>(3,0);
         // state.Vpitch = (float) U.at<double>(4,0);
-        state.Vyaw = (float)U.at<double>(5, 0);
+        state.Vyaw = (float) U.at<double>(5, 0);
         // cout << "Enviadas las velocidades..." << endl;
 
         U.release();

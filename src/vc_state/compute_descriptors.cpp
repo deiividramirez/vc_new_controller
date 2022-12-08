@@ -19,12 +19,12 @@ int compute_descriptors(const Mat &img,
 
 	if (kp.size() == 0)
 	{
-		cout << "No keypoints detected" << endl;
+		cout << "[ERROR] No keypoints detected" << endl;
 		return -1;
 	}
 	else
 	{
-		cout << "Keypoints detected: " << kp.size() << endl;
+		cout << "[ERROR] Keypoints detected: " << kp.size() << endl;
 	}
 	orb->compute(img, kp, descriptors);
 
@@ -43,7 +43,7 @@ int compute_descriptors(const Mat &img,
 	}
 	if (goodMatches.size() == 0)
 	{
-		cout << "There are no good matches" << endl;
+		cout << "[ERROR] There are no good matches" << endl;
 		exit(-1);
 	}
 

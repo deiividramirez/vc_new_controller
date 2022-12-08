@@ -46,7 +46,7 @@ Mat Ordenamiento(Mat puntos, int opc)
 		orden.at<int>(0, i) = i;
 	}
 
-	cout << "Orden: " << orden << endl;
+	// cout << "Orden: " << orden << endl;
 	for (int i = 0; i < p2.rows; i++)
 	{
 		for (int j = 0; j < p2.rows - 1; j++)
@@ -59,6 +59,7 @@ Mat Ordenamiento(Mat puntos, int opc)
 			{
 				check = (p2.at<double>(i, 0) - p2.at<double>(i, 1) < p2.at<double>(j, 0) - p2.at<double>(j, 1));
 			}
+
 			if (check)
 			{
 				double temp = p2.at<double>(i, 0);
@@ -121,7 +122,7 @@ int main(int argc, char **argv)
 	state.desired_configuration.img = imread(workspace + image_dir, IMREAD_COLOR);
 	if (state.desired_configuration.img.empty())
 	{
-		cerr << "[ERR] Could not open or find the reference image" << std::endl;
+		cerr << "[ERROR] Could not open or find the reference image" << std::endl;
 		return -1;
 	}
 	else
@@ -171,13 +172,14 @@ int main(int argc, char **argv)
 	vector<float> vel_yaw;
 	vector<float> errors;
 	vector<float> time;
+	vector<float> lambda;
 
 	// Create message for the pose
 	trajectory_msgs::MultiDOFJointTrajectory msg;
 	string file_folder = "/src/vc_new_controller/src/data/";
 
 	/******************************************************************************* CYCLE START*/
-	while (ros::ok())
+	while (ros::ok() && contIMG < 1000)
 	{
 		// get a msg
 		ros::spinOnce();
@@ -195,6 +197,7 @@ int main(int argc, char **argv)
 		vel_y.push_back(state.Vy);
 		vel_z.push_back(state.Vz);
 		vel_yaw.push_back(state.Vyaw);
+		lambda.push_back(state.lambda);
 
 		if (matching_result.mean_feature_error < state.params.feature_threshold)
 		{
@@ -229,6 +232,7 @@ int main(int argc, char **argv)
 	writeFile(vel_y, workspace + file_folder + "Vy.txt");
 	writeFile(vel_z, workspace + file_folder + "Vz.txt");
 	writeFile(vel_yaw, workspace + file_folder + "Vyaw.txt");
+	writeFile(lambda, workspace + file_folder + "lambda.txt");
 
 	return 0;
 }
@@ -253,18 +257,7 @@ void imageCallback(const sensor_msgs::Image::ConstPtr &msg)
 		imwrite(workspace + saveIMG, actual);
 		cout << "[INFO] << Image saved >>" << saveIMG << endl;
 
-		// Mat actual_gray;
-		// cvtColor(actual, actual_gray, COLOR_BGR2GRAY);
-
-		// Mat corner;
-		// goodFeaturesToTrack(actual_gray, corner, 100, 0.01, 10);
-		// // print corner and size
-		// cout << "[INFO] Corner size: " << corner.size() << endl;
-		// cout << "[INFO] Corner: " << corner << endl;
-		// cout << corner.at<float>(0, 0) << endl;
-		// cout << corner.at<float>(0, 1) << endl;
-
-		if (contIMG == 1)
+		if (contIMG < 3)
 		{
 
 			cout << endl
@@ -278,9 +271,96 @@ void imageCallback(const sensor_msgs::Image::ConstPtr &msg)
 
 			Mat esquinas1 = Ordenamiento(matching_result.p2, 1);
 			Mat esquinas2 = Ordenamiento(matching_result.p2, 2);
-
-			int start = (int)rand() % 10 + 5;
+			int start = (int) (rand() % 10) + 5;
 			int end = matching_result.p2.rows - 1 - start;
+
+			// int start1, end1, start2, end2, start3, end3, start4, end4;
+			// int XCEN = 376, YCEN = 240;
+			// int XMAX = 712, YMAX = 400;
+			// int XMIN = 40,  YMIN = 40;
+			// int d = 20;
+			// bool C1 = true, C2 = true, C3 = true, C4 = true;
+			// // TAMAÑO DE IMAGEN 752x480 // 376x240
+
+			// for (int i = 0; i < matching_result.p2.rows; i++)
+			// {
+			// 	double a = matching_result.p2.at<double>(i, 0);
+			// 	double b = matching_result.p2.at<double>(i, 1);
+
+			// 	if (XCEN+d < a < XMAX && YMIN < b < YCEN-d && C1)
+			// 	{
+			// 		start1 = i;
+			// 		cout << "start1: " << start1 << " (" << matching_result.p2.at<double>(start1, 0) << ", " << matching_result.p2.at<double>(start1, 1) << ")" << endl;
+			// 		cout << "start1: " << start1 << " (" << matching_result.p1.at<double>(start1, 0) << ", " << matching_result.p1.at<double>(start1, 1) << ")" << endl;
+			// 		C1 = false;
+			// 	}
+			// 	else if (XCEN+d < a < XMAX && YCEN+d < b < YMAX && C2)
+			// 	{
+			// 		start2 = i;
+			// 		cout << "start2: " << start2 << " (" << matching_result.p2.at<double>(start2, 0) << ", " << matching_result.p2.at<double>(start2, 1) << ")" << endl;
+			// 		cout << "start2: " << start2 << " (" << matching_result.p1.at<double>(start2, 0) << ", " << matching_result.p1.at<double>(start2, 1) << ")" << endl;
+			// 		C2 = false;
+			// 	}
+			// 	else if (XMIN < a < XCEN-d && YMIN < b < YCEN-d && C3)
+			// 	{
+			// 		start3 = i;
+			// 		cout << "start3: " << start3 << " (" << matching_result.p2.at<double>(start3, 0) << ", " << matching_result.p2.at<double>(start3, 1) << ")" << endl;
+			// 		cout << "start3: " << start3 << " (" << matching_result.p1.at<double>(start3, 0) << ", " << matching_result.p1.at<double>(start3, 1) << ")" << endl;
+			// 		C3 = false;
+			// 	}
+			// 	else if (XMIN < a < XCEN-d && YCEN+d < b < YMAX && C4)
+			// 	{
+			// 		start4 = i;
+			// 		cout << "start4: " << start4 << " (" << matching_result.p2.at<double>(start4, 0) << ", " << matching_result.p2.at<double>(start4, 1) << ")" << endl;
+			// 		cout << "start4: " << start4 << " (" << matching_result.p1.at<double>(start4, 0) << ", " << matching_result.p1.at<double>(start4, 1) << ")" << endl;
+			// 		C4 = false;
+			// 	}
+			// }
+
+			// exit(-1);
+
+
+			// for (int i = 0; i < esquinas1.cols; i++)
+			// {
+			// 	if (matching_result.p2.at<double>(esquinas1.at<int>(0, i), 0) + matching_result.p2.at<double>(esquinas1.at<int>(0, i), 1) > (30+30) )
+			// 	{
+			// 		start1 = esquinas1.at<int>(0, i);
+			// 		cout << "start1: " << start1 << " (" << matching_result.p2.at<double>(esquinas1.at<int>(0, start1), 0) << ", " << matching_result.p2.at<double>(esquinas1.at<int>(0, start1), 1) << ")" << endl;
+			// 		break;
+			// 	}
+			// }	
+			// for (int i = esquinas1.cols-1; i > 0; i--)
+			// {
+			// 	if (matching_result.p2.at<double>(esquinas1.at<int>(0, i), 0) + matching_result.p2.at<double>(esquinas1.at<int>(0, i), 1) < (722+450) )
+			// 	{
+			// 		end1 = esquinas1.at<int>(0, i);
+			// 		cout << "end1: " << end1 << " (" << matching_result.p2.at<double>(esquinas1.at<int>(0, end1), 0) << ", " << matching_result.p2.at<double>(esquinas1.at<int>(0, end1), 1) << ")" << endl;
+			// 		break;
+			// 	}
+			// }	
+
+
+			// for (int i = 0; i < esquinas2.cols; i++)
+			// {
+			// 	cout << "i: " << i << " (" << matching_result.p2.at<double>(esquinas2.at<int>(0, i), 0) << ", " << matching_result.p2.at<double>(esquinas2.at<int>(0, i), 1) << ")" << endl;
+			// 	if (matching_result.p2.at<double>(esquinas2.at<int>(0, i), 0) - matching_result.p2.at<double>(esquinas2.at<int>(0, i), 1) > (30-30) )
+			// 	{
+			// 		start2 = esquinas2.at<int>(0, i);
+			// 		cout << "start2: " << start2 << " " << matching_result.p2.at<double>(esquinas2.at<int>(0, i), 0) << " " << matching_result.p2.at<double>(esquinas2.at<int>(0, i), 1) << endl;
+			// 		break;
+			// 	}
+			// }	
+			// for (int i = esquinas2.cols-1; i > 0; i--)
+			// {
+			// 	// cout << "i: " << i << " (" << matching_result.p2.at<double>(esquinas2.at<int>(0, i), 0) << ", " << matching_result.p2.at<double>(esquinas2.at<int>(0, i), 1) << ") " << endl;
+			// 	if (matching_result.p2.at<double>(esquinas2.at<int>(0, i), 0) - matching_result.p2.at<double>(esquinas2.at<int>(0, i), 1) < (722-450) )
+			// 	{
+			// 		end2 = esquinas2.at<int>(0, i);
+			// 		cout << "end2: " << end2 << " " << matching_result.p2.at<double>(esquinas2.at<int>(0, i), 0) << " " << matching_result.p2.at<double>(esquinas2.at<int>(0, i), 1) << endl;
+			// 		break;
+			// 	}
+			// }	
+			
 
 			img_points = Mat(4, 2, CV_32F);
 			img_points.at<Point2f>(0, 0) = Point2f(matching_result.p2.at<double>(esquinas1.at<int>(0, start), 0), matching_result.p2.at<double>(esquinas1.at<int>(0, start), 1));
@@ -293,7 +373,7 @@ void imageCallback(const sensor_msgs::Image::ConstPtr &msg)
 			temporal.at<Point2f>(1, 0) = Point2f(matching_result.p1.at<double>(esquinas1.at<int>(0, end), 0), matching_result.p1.at<double>(esquinas1.at<int>(0, end), 1));
 			temporal.at<Point2f>(2, 0) = Point2f(matching_result.p1.at<double>(esquinas2.at<int>(0, start), 0), matching_result.p1.at<double>(esquinas2.at<int>(0, start), 1));
 			temporal.at<Point2f>(3, 0) = Point2f(matching_result.p1.at<double>(esquinas2.at<int>(0, end), 0), matching_result.p1.at<double>(esquinas2.at<int>(0, end), 1));
-			cout << "[INFO] temporal: " << temporal << endl;
+			// cout << "[INFO] temporal: " << temporal << endl;
 			temporal.convertTo(matching_result.p1, CV_64F);
 
 			temporal = Mat::zeros(4, 2, CV_32F);
@@ -301,8 +381,32 @@ void imageCallback(const sensor_msgs::Image::ConstPtr &msg)
 			temporal.at<Point2f>(1, 0) = Point2f(matching_result.p2.at<double>(esquinas1.at<int>(0, end), 0), matching_result.p2.at<double>(esquinas1.at<int>(0, end), 1));
 			temporal.at<Point2f>(2, 0) = Point2f(matching_result.p2.at<double>(esquinas2.at<int>(0, start), 0), matching_result.p2.at<double>(esquinas2.at<int>(0, start), 1));
 			temporal.at<Point2f>(3, 0) = Point2f(matching_result.p2.at<double>(esquinas2.at<int>(0, end), 0), matching_result.p2.at<double>(esquinas2.at<int>(0, end), 1));
-			cout << "[INFO] temporal: " << temporal << endl;
+			// cout << "[INFO] temporal: " << temporal << endl;
 			temporal.convertTo(matching_result.p2, CV_64F);
+
+			// 
+			// img_points = Mat(4, 2, CV_32F);
+			// img_points.at<Point2f>(0, 0) = Point2f(matching_result.p2.at<double>(start1, 0), matching_result.p2.at<double>(start1, 1));
+			// img_points.at<Point2f>(1, 0) = Point2f(matching_result.p2.at<double>(start2, 0), matching_result.p2.at<double>(start2, 1));
+			// img_points.at<Point2f>(2, 0) = Point2f(matching_result.p2.at<double>(start3, 0), matching_result.p2.at<double>(start3, 1));
+			// img_points.at<Point2f>(3, 0) = Point2f(matching_result.p2.at<double>(start4, 0), matching_result.p2.at<double>(start4, 1));
+
+			// Mat temporal = Mat::zeros(4, 2, CV_32F);
+			// temporal.at<Point2f>(0, 0) = Point2f(matching_result.p1.at<double>(start1, 0), matching_result.p1.at<double>(start1, 1));
+			// temporal.at<Point2f>(1, 0) = Point2f(matching_result.p1.at<double>(start2, 0), matching_result.p1.at<double>(start2, 1));
+			// temporal.at<Point2f>(2, 0) = Point2f(matching_result.p1.at<double>(start3, 0), matching_result.p1.at<double>(start3, 1));
+			// temporal.at<Point2f>(3, 0) = Point2f(matching_result.p1.at<double>(start4, 0), matching_result.p1.at<double>(start4, 1));
+			// // cout << "[INFO] temporal: " << temporal << endl;
+			// temporal.convertTo(matching_result.p1, CV_64F);
+
+			// temporal = Mat::zeros(4, 2, CV_32F);
+			// temporal.at<Point2f>(0, 0) = Point2f(matching_result.p2.at<double>(start1, 0), matching_result.p2.at<double>(start1, 1));
+			// temporal.at<Point2f>(1, 0) = Point2f(matching_result.p2.at<double>(start2, 0), matching_result.p2.at<double>(start2, 1));
+			// temporal.at<Point2f>(2, 0) = Point2f(matching_result.p2.at<double>(start3, 0), matching_result.p2.at<double>(start3, 1));
+			// temporal.at<Point2f>(3, 0) = Point2f(matching_result.p2.at<double>(start4, 0), matching_result.p2.at<double>(start4, 1));
+			// // cout << "[INFO] temporal: " << temporal << endl;
+			// temporal.convertTo(matching_result.p2, CV_64F);
+		
 
 			cout << "[INFO] img_points: " << img_points << endl;
 			cout << "[INFO] matching_result.p1: " << matching_result.p1 << endl;
@@ -316,13 +420,15 @@ void imageCallback(const sensor_msgs::Image::ConstPtr &msg)
 			// }
 
 			img_old = actual;
+			// exit(-1);
 		}
 		else
 		{
 			Mat img_new = actual;
 
 			// AQUI ES DONDE SE EJECUTA TODOOOOO
-			if (controllers[contr_sel](actual, state, matching_result) < 0)
+			// if (controllers[contr_sel](actual, state, matching_result) < 0)
+			if (GUO(actual, state, matching_result) < 0)
 			{
 				cout << "[ERROR] Controller failed" << endl;
 				return;
