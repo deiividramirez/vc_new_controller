@@ -14,6 +14,14 @@
 #include "vc_state/img_tools.h"
 // #include "vc_state/math_custom.h"
 
+// # Lee position controller parameters
+// position_gain: {x: 6, y: 6, z: 6}
+// velocity_gain: {x: 4.7, y: 4.7, z: 4.7}
+// attitude_gain: {x: 2, y: 3, z: 0.15}
+// angular_rate_gain: {x: 0.4, y: 0.52, z: 0.18}
+
+
+
 class vc_state {
 	public:
 		/* defining where the drone will move and integrating system*/
