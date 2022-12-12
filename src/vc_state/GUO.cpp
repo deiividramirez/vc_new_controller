@@ -250,7 +250,7 @@ int GUO(Mat img,                                       // Image to be processed
         // }
 
         double l0 = 2*lambda, linf = lambda, lprima = 1;
-        double lambda_temp = (l0 - linf) * exp(-(lprima*matching_result.mean_feature_error)/(l0 - linf)) + linf;
+        double lambda_temp = (l0 - linf) * exp(-(lprima * matching_result.mean_feature_error)/(l0 - linf)) + linf;
 
         U_temp = -lambda_temp * Lo * ERROR;
 

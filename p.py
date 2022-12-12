@@ -16,10 +16,10 @@ w_points = np.vstack([xx, yy, zz])
 
 print(xx, yy)
 
-width  = 1857
-height = 1404
-# width  = 752
-# height = 480
+# width  = 1857
+# height = 1404
+width  = 752
+height = 480
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
@@ -29,7 +29,8 @@ figure.set_size_inches(width/100, height/100)
 # ax.view_init(elev=0, azim=90)
 plt.axis('off')
 # ax.scatter(w_points[0], w_points[1], w_points[2], s=0.1)
-plt.scatter(xx, yy, c=np.arange(nPoints), s=7, cmap='jet')
+plt.plot
+(xx, yy, ".", color="black")#, c=np.arange(nPoints), s=7, cmap='jet')
 plt.xlim(-10, 10)
 plt.ylim(-10, 10)
 # plt.gca().set_position([0, 0, 1, 1])  

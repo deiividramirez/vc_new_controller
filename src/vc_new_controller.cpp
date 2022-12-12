@@ -37,47 +37,116 @@ int contIMG = 0;
 
 Mat img_old, img_points;
 
-Mat Ordenamiento(Mat puntos, int opc)
+// Mat Ordenamiento(Mat puntos, int opc)
+// {
+// 	bool check;
+// 	Mat orden = Mat::zeros(1, puntos.rows, CV_32SC1), p2 = puntos.clone();
+// 	for (int i = 0; i < p2.rows; i++)
+// 	{
+// 		orden.at<int>(0, i) = i;
+// 	}
+
+// 	// cout << "Orden: " << orden << endl;
+// 	for (int i = 0; i < p2.rows; i++)
+// 	{
+// 		for (int j = 0; j < p2.rows - 1; j++)
+// 		{
+// 			if (opc == 1)
+// 			{
+// 				check = (p2.at<double>(i, 0) + p2.at<double>(i, 1) < p2.at<double>(j, 0) + p2.at<double>(j, 1));
+// 			}
+// 			else
+// 			{
+// 				check = (p2.at<double>(i, 0) - p2.at<double>(i, 1) < p2.at<double>(j, 0) - p2.at<double>(j, 1));
+// 			}
+
+// 			if (check)
+// 			{
+// 				double temp = p2.at<double>(i, 0);
+// 				p2.at<double>(i, 0) = p2.at<double>(j, 0);
+// 				p2.at<double>(j, 0) = temp;
+
+// 				temp = p2.at<double>(i, 1);
+// 				p2.at<double>(i, 1) = p2.at<double>(j, 1);
+// 				p2.at<double>(j, 1) = temp;
+
+// 				int temp2 = orden.at<int>(0, i);
+// 				orden.at<int>(0, i) = orden.at<int>(0, j);
+// 				orden.at<int>(0, j) = temp2;
+// 			}
+// 		}
+// 	}
+
+// 	cout << "Orden: " << orden << endl;
+// 	return orden;
+// }
+
+int MinBy(Mat puntos, Mat key)
 {
-	bool check;
-	Mat orden = Mat::zeros(1, puntos.rows, CV_32SC1), p2 = puntos.clone();
+	// Make buuble sort with norm of the difference between points and key
+	Mat orden = Mat::zeros(1, puntos.rows, CV_32S);
+	Mat p2 = puntos.clone();
+
 	for (int i = 0; i < p2.rows; i++)
 	{
 		orden.at<int>(0, i) = i;
 	}
-
-	// cout << "Orden: " << orden << endl;
+	
 	for (int i = 0; i < p2.rows; i++)
 	{
 		for (int j = 0; j < p2.rows - 1; j++)
 		{
-			if (opc == 1)
+			Mat diff1 = p2.row(j) - key;
+			Mat diff2 = p2.row(i) - key;
+			if (norm(diff1) > norm(diff2))
 			{
-				check = (p2.at<double>(i, 0) + p2.at<double>(i, 1) < p2.at<double>(j, 0) + p2.at<double>(j, 1));
-			}
-			else
-			{
-				check = (p2.at<double>(i, 0) - p2.at<double>(i, 1) < p2.at<double>(j, 0) - p2.at<double>(j, 1));
-			}
+				double temp = p2.at<double>(j, 0);
+				p2.at<double>(j, 0) = p2.at<double>(i, 0);
+				p2.at<double>(i, 0) = temp;
 
-			if (check)
-			{
-				double temp = p2.at<double>(i, 0);
-				p2.at<double>(i, 0) = p2.at<double>(j, 0);
-				p2.at<double>(j, 0) = temp;
-
-				temp = p2.at<double>(i, 1);
-				p2.at<double>(i, 1) = p2.at<double>(j, 1);
-				p2.at<double>(j, 1) = temp;
-
-				int temp2 = orden.at<int>(0, i);
-				orden.at<int>(0, i) = orden.at<int>(0, j);
-				orden.at<int>(0, j) = temp2;
+				temp = p2.at<double>(j, 1);
+				p2.at<double>(j, 1) = p2.at<double>(i, 1);
+				p2.at<double>(i, 1) = temp;
+				
+				int temp2 = orden.at<int>(0, j);
+				orden.at<int>(0, j) = orden.at<int>(0, i);
+				orden.at<int>(0, i) = temp2;
 			}
 		}
 	}
 
+	return orden.at<int>(0, 0);
+}
+
+Mat Orden(Mat puntos)
+{
+	Mat orden = Mat::zeros(1, 4, CV_32S);
+	// The next are constnat matrices to compare points around about
+	Mat key_p1 = (Mat_<double>(1, 2) << 188, 360);
+	Mat key_p2 = (Mat_<double>(1, 2) << 564, 360);
+	Mat key_p3 = (Mat_<double>(1, 2) << 188, 120);
+	Mat key_p4 = (Mat_<double>(1, 2) << 564, 120);
+
+	int mkey_p1 = MinBy(puntos, key_p1);
+	orden.at<int>(0, 0) = mkey_p1;
+
+	int mkey_p2 = MinBy(puntos, key_p2);
+	orden.at<int>(0, 1) = mkey_p2;
+
+	int mkey_p3 = MinBy(puntos, key_p3);
+	orden.at<int>(0, 2) = mkey_p3;
+
+	int mkey_p4 = MinBy(puntos, key_p4);
+	orden.at<int>(0, 3) = mkey_p4;
+
+	// cout << "key_p1: " << key_p1 << " -- " << puntos.row(mkey_p1) << endl;
+	// cout << "key_p2: " << key_p2 << " -- " << puntos.row(mkey_p2) << endl;
+	// cout << "key_p3: " << key_p3 << " -- " << puntos.row(mkey_p3) << endl;
+	// cout << "key_p4: " << key_p4 << " -- " << puntos.row(mkey_p4) << endl;
+
 	cout << "Orden: " << orden << endl;
+	
+	// exit(-1);
 	return orden;
 }
 
@@ -192,7 +261,7 @@ int main(int argc, char **argv)
 
 		// save data
 		time.push_back(state.t);
-		errors.push_back((float)matching_result.mean_feature_error);
+		errors.push_back( (float) matching_result.mean_feature_error);
 		vel_x.push_back(state.Vx);
 		vel_y.push_back(state.Vy);
 		vel_z.push_back(state.Vz);
@@ -269,165 +338,40 @@ void imageCallback(const sensor_msgs::Image::ConstPtr &msg)
 				return;
 			}
 
-			Mat esquinas1 = Ordenamiento(matching_result.p2, 1);
-			Mat esquinas2 = Ordenamiento(matching_result.p2, 2);
-			int start = (int) (rand() % 10) + 5;
-			int end = matching_result.p2.rows - 1 - start;
-
-			// int start1, end1, start2, end2, start3, end3, start4, end4;
-			// int XCEN = 376, YCEN = 240;
-			// int XMAX = 712, YMAX = 400;
-			// int XMIN = 40,  YMIN = 40;
-			// int d = 20;
-			// bool C1 = true, C2 = true, C3 = true, C4 = true;
-			// // TAMAÑO DE IMAGEN 752x480 // 376x240
-
-			// for (int i = 0; i < matching_result.p2.rows; i++)
-			// {
-			// 	double a = matching_result.p2.at<double>(i, 0);
-			// 	double b = matching_result.p2.at<double>(i, 1);
-
-			// 	if (XCEN+d < a < XMAX && YMIN < b < YCEN-d && C1)
-			// 	{
-			// 		start1 = i;
-			// 		cout << "start1: " << start1 << " (" << matching_result.p2.at<double>(start1, 0) << ", " << matching_result.p2.at<double>(start1, 1) << ")" << endl;
-			// 		cout << "start1: " << start1 << " (" << matching_result.p1.at<double>(start1, 0) << ", " << matching_result.p1.at<double>(start1, 1) << ")" << endl;
-			// 		C1 = false;
-			// 	}
-			// 	else if (XCEN+d < a < XMAX && YCEN+d < b < YMAX && C2)
-			// 	{
-			// 		start2 = i;
-			// 		cout << "start2: " << start2 << " (" << matching_result.p2.at<double>(start2, 0) << ", " << matching_result.p2.at<double>(start2, 1) << ")" << endl;
-			// 		cout << "start2: " << start2 << " (" << matching_result.p1.at<double>(start2, 0) << ", " << matching_result.p1.at<double>(start2, 1) << ")" << endl;
-			// 		C2 = false;
-			// 	}
-			// 	else if (XMIN < a < XCEN-d && YMIN < b < YCEN-d && C3)
-			// 	{
-			// 		start3 = i;
-			// 		cout << "start3: " << start3 << " (" << matching_result.p2.at<double>(start3, 0) << ", " << matching_result.p2.at<double>(start3, 1) << ")" << endl;
-			// 		cout << "start3: " << start3 << " (" << matching_result.p1.at<double>(start3, 0) << ", " << matching_result.p1.at<double>(start3, 1) << ")" << endl;
-			// 		C3 = false;
-			// 	}
-			// 	else if (XMIN < a < XCEN-d && YCEN+d < b < YMAX && C4)
-			// 	{
-			// 		start4 = i;
-			// 		cout << "start4: " << start4 << " (" << matching_result.p2.at<double>(start4, 0) << ", " << matching_result.p2.at<double>(start4, 1) << ")" << endl;
-			// 		cout << "start4: " << start4 << " (" << matching_result.p1.at<double>(start4, 0) << ", " << matching_result.p1.at<double>(start4, 1) << ")" << endl;
-			// 		C4 = false;
-			// 	}
-			// }
-
-			// exit(-1);
-
-
-			// for (int i = 0; i < esquinas1.cols; i++)
-			// {
-			// 	if (matching_result.p2.at<double>(esquinas1.at<int>(0, i), 0) + matching_result.p2.at<double>(esquinas1.at<int>(0, i), 1) > (30+30) )
-			// 	{
-			// 		start1 = esquinas1.at<int>(0, i);
-			// 		cout << "start1: " << start1 << " (" << matching_result.p2.at<double>(esquinas1.at<int>(0, start1), 0) << ", " << matching_result.p2.at<double>(esquinas1.at<int>(0, start1), 1) << ")" << endl;
-			// 		break;
-			// 	}
-			// }	
-			// for (int i = esquinas1.cols-1; i > 0; i--)
-			// {
-			// 	if (matching_result.p2.at<double>(esquinas1.at<int>(0, i), 0) + matching_result.p2.at<double>(esquinas1.at<int>(0, i), 1) < (722+450) )
-			// 	{
-			// 		end1 = esquinas1.at<int>(0, i);
-			// 		cout << "end1: " << end1 << " (" << matching_result.p2.at<double>(esquinas1.at<int>(0, end1), 0) << ", " << matching_result.p2.at<double>(esquinas1.at<int>(0, end1), 1) << ")" << endl;
-			// 		break;
-			// 	}
-			// }	
-
-
-			// for (int i = 0; i < esquinas2.cols; i++)
-			// {
-			// 	cout << "i: " << i << " (" << matching_result.p2.at<double>(esquinas2.at<int>(0, i), 0) << ", " << matching_result.p2.at<double>(esquinas2.at<int>(0, i), 1) << ")" << endl;
-			// 	if (matching_result.p2.at<double>(esquinas2.at<int>(0, i), 0) - matching_result.p2.at<double>(esquinas2.at<int>(0, i), 1) > (30-30) )
-			// 	{
-			// 		start2 = esquinas2.at<int>(0, i);
-			// 		cout << "start2: " << start2 << " " << matching_result.p2.at<double>(esquinas2.at<int>(0, i), 0) << " " << matching_result.p2.at<double>(esquinas2.at<int>(0, i), 1) << endl;
-			// 		break;
-			// 	}
-			// }	
-			// for (int i = esquinas2.cols-1; i > 0; i--)
-			// {
-			// 	// cout << "i: " << i << " (" << matching_result.p2.at<double>(esquinas2.at<int>(0, i), 0) << ", " << matching_result.p2.at<double>(esquinas2.at<int>(0, i), 1) << ") " << endl;
-			// 	if (matching_result.p2.at<double>(esquinas2.at<int>(0, i), 0) - matching_result.p2.at<double>(esquinas2.at<int>(0, i), 1) < (722-450) )
-			// 	{
-			// 		end2 = esquinas2.at<int>(0, i);
-			// 		cout << "end2: " << end2 << " " << matching_result.p2.at<double>(esquinas2.at<int>(0, i), 0) << " " << matching_result.p2.at<double>(esquinas2.at<int>(0, i), 1) << endl;
-			// 		break;
-			// 	}
-			// }	
-			
-
+			Mat puntos = Orden(matching_result.p2);
 			img_points = Mat(4, 2, CV_32F);
-			img_points.at<Point2f>(0, 0) = Point2f(matching_result.p2.at<double>(esquinas1.at<int>(0, start), 0), matching_result.p2.at<double>(esquinas1.at<int>(0, start), 1));
-			img_points.at<Point2f>(1, 0) = Point2f(matching_result.p2.at<double>(esquinas1.at<int>(0, end), 0), matching_result.p2.at<double>(esquinas1.at<int>(0, end), 1));
-			img_points.at<Point2f>(2, 0) = Point2f(matching_result.p2.at<double>(esquinas2.at<int>(0, start), 0), matching_result.p2.at<double>(esquinas2.at<int>(0, start), 1));
-			img_points.at<Point2f>(3, 0) = Point2f(matching_result.p2.at<double>(esquinas2.at<int>(0, end), 0), matching_result.p2.at<double>(esquinas2.at<int>(0, end), 1));
+			img_points.at<Point2f>(0, 0) = Point2f(matching_result.p2.at<double>(puntos.at<int>(0, 0), 0), matching_result.p2.at<double>(puntos.at<int>(0, 0), 1));
+			img_points.at<Point2f>(1, 0) = Point2f(matching_result.p2.at<double>(puntos.at<int>(0, 1), 0), matching_result.p2.at<double>(puntos.at<int>(0, 1), 1));
+			img_points.at<Point2f>(2, 0) = Point2f(matching_result.p2.at<double>(puntos.at<int>(0, 2), 0), matching_result.p2.at<double>(puntos.at<int>(0, 2), 1));
+			img_points.at<Point2f>(3, 0) = Point2f(matching_result.p2.at<double>(puntos.at<int>(0, 3), 0), matching_result.p2.at<double>(puntos.at<int>(0, 3), 1));
 
 			Mat temporal = Mat::zeros(4, 2, CV_32F);
-			temporal.at<Point2f>(0, 0) = Point2f(matching_result.p1.at<double>(esquinas1.at<int>(0, start), 0), matching_result.p1.at<double>(esquinas1.at<int>(0, start), 1));
-			temporal.at<Point2f>(1, 0) = Point2f(matching_result.p1.at<double>(esquinas1.at<int>(0, end), 0), matching_result.p1.at<double>(esquinas1.at<int>(0, end), 1));
-			temporal.at<Point2f>(2, 0) = Point2f(matching_result.p1.at<double>(esquinas2.at<int>(0, start), 0), matching_result.p1.at<double>(esquinas2.at<int>(0, start), 1));
-			temporal.at<Point2f>(3, 0) = Point2f(matching_result.p1.at<double>(esquinas2.at<int>(0, end), 0), matching_result.p1.at<double>(esquinas2.at<int>(0, end), 1));
+			temporal.at<Point2f>(0, 0) = Point2f(matching_result.p1.at<double>(puntos.at<int>(0, 0), 0), matching_result.p1.at<double>(puntos.at<int>(0, 0), 1));
+			temporal.at<Point2f>(1, 0) = Point2f(matching_result.p1.at<double>(puntos.at<int>(0, 1), 0), matching_result.p1.at<double>(puntos.at<int>(0, 1), 1));
+			temporal.at<Point2f>(2, 0) = Point2f(matching_result.p1.at<double>(puntos.at<int>(0, 2), 0), matching_result.p1.at<double>(puntos.at<int>(0, 2), 1));
+			temporal.at<Point2f>(3, 0) = Point2f(matching_result.p1.at<double>(puntos.at<int>(0, 3), 0), matching_result.p1.at<double>(puntos.at<int>(0, 3), 1));
 			// cout << "[INFO] temporal: " << temporal << endl;
 			temporal.convertTo(matching_result.p1, CV_64F);
 
 			temporal = Mat::zeros(4, 2, CV_32F);
-			temporal.at<Point2f>(0, 0) = Point2f(matching_result.p2.at<double>(esquinas1.at<int>(0, start), 0), matching_result.p2.at<double>(esquinas1.at<int>(0, start), 1));
-			temporal.at<Point2f>(1, 0) = Point2f(matching_result.p2.at<double>(esquinas1.at<int>(0, end), 0), matching_result.p2.at<double>(esquinas1.at<int>(0, end), 1));
-			temporal.at<Point2f>(2, 0) = Point2f(matching_result.p2.at<double>(esquinas2.at<int>(0, start), 0), matching_result.p2.at<double>(esquinas2.at<int>(0, start), 1));
-			temporal.at<Point2f>(3, 0) = Point2f(matching_result.p2.at<double>(esquinas2.at<int>(0, end), 0), matching_result.p2.at<double>(esquinas2.at<int>(0, end), 1));
+			temporal.at<Point2f>(0, 0) = Point2f(matching_result.p2.at<double>(puntos.at<int>(0, 0), 0), matching_result.p2.at<double>(puntos.at<int>(0, 0), 1));
+			temporal.at<Point2f>(1, 0) = Point2f(matching_result.p2.at<double>(puntos.at<int>(0, 1), 0), matching_result.p2.at<double>(puntos.at<int>(0, 1), 1));
+			temporal.at<Point2f>(2, 0) = Point2f(matching_result.p2.at<double>(puntos.at<int>(0, 3), 0), matching_result.p2.at<double>(puntos.at<int>(0, 3), 1));
+			temporal.at<Point2f>(3, 0) = Point2f(matching_result.p2.at<double>(puntos.at<int>(0, 3), 0), matching_result.p2.at<double>(puntos.at<int>(0, 3), 1));
 			// cout << "[INFO] temporal: " << temporal << endl;
 			temporal.convertTo(matching_result.p2, CV_64F);
-
-			// 
-			// img_points = Mat(4, 2, CV_32F);
-			// img_points.at<Point2f>(0, 0) = Point2f(matching_result.p2.at<double>(start1, 0), matching_result.p2.at<double>(start1, 1));
-			// img_points.at<Point2f>(1, 0) = Point2f(matching_result.p2.at<double>(start2, 0), matching_result.p2.at<double>(start2, 1));
-			// img_points.at<Point2f>(2, 0) = Point2f(matching_result.p2.at<double>(start3, 0), matching_result.p2.at<double>(start3, 1));
-			// img_points.at<Point2f>(3, 0) = Point2f(matching_result.p2.at<double>(start4, 0), matching_result.p2.at<double>(start4, 1));
-
-			// Mat temporal = Mat::zeros(4, 2, CV_32F);
-			// temporal.at<Point2f>(0, 0) = Point2f(matching_result.p1.at<double>(start1, 0), matching_result.p1.at<double>(start1, 1));
-			// temporal.at<Point2f>(1, 0) = Point2f(matching_result.p1.at<double>(start2, 0), matching_result.p1.at<double>(start2, 1));
-			// temporal.at<Point2f>(2, 0) = Point2f(matching_result.p1.at<double>(start3, 0), matching_result.p1.at<double>(start3, 1));
-			// temporal.at<Point2f>(3, 0) = Point2f(matching_result.p1.at<double>(start4, 0), matching_result.p1.at<double>(start4, 1));
-			// // cout << "[INFO] temporal: " << temporal << endl;
-			// temporal.convertTo(matching_result.p1, CV_64F);
-
-			// temporal = Mat::zeros(4, 2, CV_32F);
-			// temporal.at<Point2f>(0, 0) = Point2f(matching_result.p2.at<double>(start1, 0), matching_result.p2.at<double>(start1, 1));
-			// temporal.at<Point2f>(1, 0) = Point2f(matching_result.p2.at<double>(start2, 0), matching_result.p2.at<double>(start2, 1));
-			// temporal.at<Point2f>(2, 0) = Point2f(matching_result.p2.at<double>(start3, 0), matching_result.p2.at<double>(start3, 1));
-			// temporal.at<Point2f>(3, 0) = Point2f(matching_result.p2.at<double>(start4, 0), matching_result.p2.at<double>(start4, 1));
-			// // cout << "[INFO] temporal: " << temporal << endl;
-			// temporal.convertTo(matching_result.p2, CV_64F);
-		
 
 			cout << "[INFO] img_points: " << img_points << endl;
 			cout << "[INFO] matching_result.p1: " << matching_result.p1 << endl;
 			cout << "[INFO] matching_result.p2: " << matching_result.p2 << endl;
-			// exit(-1);
-
-			// img_points = Mat(matching_result.p2.size(), CV_32F);
-			// for (int i = 0; i < matching_result.p2.rows; i++)
-			// {
-			// 	img_points.at<Point2f>(i, 0) = Point2f(matching_result.p2.at<double>(i, 0), matching_result.p2.at<double>(i, 1));
-			// }
 
 			img_old = actual;
-			// exit(-1);
 		}
 		else
 		{
 			Mat img_new = actual;
 
 			// AQUI ES DONDE SE EJECUTA TODOOOOO
-			// if (controllers[contr_sel](actual, state, matching_result) < 0)
 			if (GUO(actual, state, matching_result) < 0)
 			{
 				cout << "[ERROR] Controller failed" << endl;
@@ -443,77 +387,29 @@ void imageCallback(const sensor_msgs::Image::ConstPtr &msg)
 			Mat img_old_gray, img_new_gray;
 			cvtColor(img_old, img_old_gray, COLOR_BGR2GRAY);
 			cvtColor(img_new, img_new_gray, COLOR_BGR2GRAY);
-			// matching_result.p2 = corner.clone();
 			calcOpticalFlowPyrLK(img_old_gray, img_new_gray, img_points, new_points, status, error);
 
-			// Clean matching_result.p2 and paste new_points
-			// matching_result.p2 = Mat::zeros(new_points.size(), new_points.type());
-			// new_points.copyTo(matching_result.p2);
-
-			// matching_result.p2 = new_points.clone();
-
-			// print the results
-			// imshow("Matching", matching_result.img_matches);
-			// waitKey(1);
 			Mat desired_temp = state.desired_configuration.img.clone();
 			for (int i = 0; i < matching_result.p1.rows; i++)
 			{
-				// cout << i << ": " << matching_result.p1.at<double>(i, 0) << " " << matching_result.p1.at<double>(i, 1) << endl;
 				circle(desired_temp, Point2f(matching_result.p1.at<double>(i, 0), matching_result.p1.at<double>(i, 1)), 3, Scalar(0, 0, 255), -1);
-				// cout << i << ": " << img_points.at<Point2f>(i, 0) << endl;
-				// circle(img_old, img_points.at<Point2f>(i, 0), 3, Scalar(0, 0, 255), -1);
-				// circle(img_old, new_points.at<Point2f>(i, 0), 3, Scalar(255, 0, 0), -1);
 			}
 			for (int i = 0; i < new_points.rows; i++)
 			{
-				// cout << i << ": " << new_points.at<Point2f>(i, 0) << endl;
 				circle(desired_temp, new_points.at<Point2f>(i, 0), 3, Scalar(255, 0, 0), -1);
 				circle(actual, new_points.at<Point2f>(i, 0), 3, Scalar(255, 0, 0), -1);
 				circle(actual, img_points.at<Point2f>(i, 0), 3, Scalar(0, 0, 255), -1);
 			}
 
-			// cout << "[INFO] matching_result.p1: " << matching_result.p1.size() << endl;
-			// cout << "[INFO] matching_result.p2: " << matching_result.p2.size() << endl;
-			// exit(-1);
-
-			// imshow("Image old", img_old);
 			imshow("Image", actual);
 			imshow("Desired", desired_temp);
 			waitKey(1);
 
-			// cout << "New points size: " << new_points.size() << endl;
-			// cout << "New points: " << new_points << endl;
-			// cout << "Status size: " << status.size() << endl;
-			// cout << "Status: " << status.t() << endl;
-
-			// reconvert from CV_32F to CV_64F
-			// Mat img_points_temp = Mat(new_points.size(), CV_64F);
-			// for (int i = 0; i < new_points.rows; i++)
-			// {
-			// 	img_points_temp.at<Point2d>(i, 0) = Point2d(new_points.at<Point2f>(i, 0).x, new_points.at<Point2f>(i, 0).y);
-			// }
-
 			new_points.convertTo(matching_result.p2, CV_64F);
-			// matching_result.p2 = img_points_temp.clone();
 			img_points = new_points.clone();
 			actual.copyTo(img_old);
-
-			// Mat a = Mat(matching_result.p1);
-			// Mat b = Mat(matching_result.p2);
-			// matching_result.mean_feature_error = norm(a, b) / ((double)matching_result.p1.rows);
-			// // Finding homography
-			// matching_result.H = findHomography(matching_result.p1, matching_result.p2, RANSAC, 0.5);
-			// if (matching_result.H.rows == 0)
-			// 	return -1;
-			// /************************************************************* Draw matches */
-
-			// matching_result.img_matches = Mat::zeros(img.rows, img.cols * 2, img.type());
-			// drawMatches(state.desired_configuration.img, state.desired_configuration.kp, img, kp,
-			// 						goodMatches, matching_result.img_matches,
-			// 						Scalar::all(-1), Scalar::all(-1), vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
-
-			// exit(-1);
 		}
+
 		/************************************************************* Prepare message */
 		image_msg = cv_bridge::CvImage(std_msgs::Header(), sensor_msgs::image_encodings::BGR8, matching_result.img_matches).toImageMsg();
 		image_msg->header.frame_id = "matching_image";
