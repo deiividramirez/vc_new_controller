@@ -161,7 +161,7 @@ Mat Lvl(Mat p2s,                    // Points of the actual image in the sphere
                 }
                 else if (params.control == 2)
                 {
-                        s = distances[i].dist;
+                        s = 1/distances[i].dist;
                 }
                 else
                 {

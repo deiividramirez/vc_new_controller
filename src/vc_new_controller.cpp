@@ -35,51 +35,8 @@ int contr_sel = 2;
 // Conteo de imágenes
 int contIMG = 0;
 
+// Matrices para mostrar las imágenes
 Mat img_old, img_points;
-
-// Mat Ordenamiento(Mat puntos, int opc)
-// {
-// 	bool check;
-// 	Mat orden = Mat::zeros(1, puntos.rows, CV_32SC1), p2 = puntos.clone();
-// 	for (int i = 0; i < p2.rows; i++)
-// 	{
-// 		orden.at<int>(0, i) = i;
-// 	}
-
-// 	// cout << "Orden: " << orden << endl;
-// 	for (int i = 0; i < p2.rows; i++)
-// 	{
-// 		for (int j = 0; j < p2.rows - 1; j++)
-// 		{
-// 			if (opc == 1)
-// 			{
-// 				check = (p2.at<double>(i, 0) + p2.at<double>(i, 1) < p2.at<double>(j, 0) + p2.at<double>(j, 1));
-// 			}
-// 			else
-// 			{
-// 				check = (p2.at<double>(i, 0) - p2.at<double>(i, 1) < p2.at<double>(j, 0) - p2.at<double>(j, 1));
-// 			}
-
-// 			if (check)
-// 			{
-// 				double temp = p2.at<double>(i, 0);
-// 				p2.at<double>(i, 0) = p2.at<double>(j, 0);
-// 				p2.at<double>(j, 0) = temp;
-
-// 				temp = p2.at<double>(i, 1);
-// 				p2.at<double>(i, 1) = p2.at<double>(j, 1);
-// 				p2.at<double>(j, 1) = temp;
-
-// 				int temp2 = orden.at<int>(0, i);
-// 				orden.at<int>(0, i) = orden.at<int>(0, j);
-// 				orden.at<int>(0, j) = temp2;
-// 			}
-// 		}
-// 	}
-
-// 	cout << "Orden: " << orden << endl;
-// 	return orden;
-// }
 
 int MinBy(Mat puntos, Mat key)
 {
@@ -128,25 +85,17 @@ Mat Orden(Mat puntos)
 	Mat key_p4 = (Mat_<double>(1, 2) << 564, 120);
 
 	int mkey_p1 = MinBy(puntos, key_p1);
-	orden.at<int>(0, 0) = mkey_p1;
-
 	int mkey_p2 = MinBy(puntos, key_p2);
-	orden.at<int>(0, 1) = mkey_p2;
-
 	int mkey_p3 = MinBy(puntos, key_p3);
-	orden.at<int>(0, 2) = mkey_p3;
-
 	int mkey_p4 = MinBy(puntos, key_p4);
-	orden.at<int>(0, 3) = mkey_p4;
 
-	// cout << "key_p1: " << key_p1 << " -- " << puntos.row(mkey_p1) << endl;
-	// cout << "key_p2: " << key_p2 << " -- " << puntos.row(mkey_p2) << endl;
-	// cout << "key_p3: " << key_p3 << " -- " << puntos.row(mkey_p3) << endl;
-	// cout << "key_p4: " << key_p4 << " -- " << puntos.row(mkey_p4) << endl;
+	orden.at<int>(0, 0) = mkey_p1;
+	orden.at<int>(0, 1) = mkey_p2;
+	orden.at<int>(0, 2) = mkey_p3;
+	orden.at<int>(0, 3) = mkey_p4;
 
 	cout << "Orden: " << orden << endl;
 	
-	// exit(-1);
 	return orden;
 }
 
@@ -322,13 +271,9 @@ void imageCallback(const sensor_msgs::Image::ConstPtr &msg)
 		Mat actual = cv_bridge::toCvShare(msg, "bgr8")->image;
 		cout << "[INFO] Image received" << endl;
 
-		string saveIMG = "/src/vc_new_controller/src/data/img/" + to_string(contIMG++) + ".jpg";
-		imwrite(workspace + saveIMG, actual);
-		cout << "[INFO] << Image saved >>" << saveIMG << endl;
-
 		if (contIMG < 3)
 		{
-
+			contIMG++;
 			cout << endl
 					 << "[INFO] Detecting keypoints" << endl;
 
@@ -350,7 +295,6 @@ void imageCallback(const sensor_msgs::Image::ConstPtr &msg)
 			temporal.at<Point2f>(1, 0) = Point2f(matching_result.p1.at<double>(puntos.at<int>(0, 1), 0), matching_result.p1.at<double>(puntos.at<int>(0, 1), 1));
 			temporal.at<Point2f>(2, 0) = Point2f(matching_result.p1.at<double>(puntos.at<int>(0, 2), 0), matching_result.p1.at<double>(puntos.at<int>(0, 2), 1));
 			temporal.at<Point2f>(3, 0) = Point2f(matching_result.p1.at<double>(puntos.at<int>(0, 3), 0), matching_result.p1.at<double>(puntos.at<int>(0, 3), 1));
-			// cout << "[INFO] temporal: " << temporal << endl;
 			temporal.convertTo(matching_result.p1, CV_64F);
 
 			temporal = Mat::zeros(4, 2, CV_32F);
@@ -358,7 +302,6 @@ void imageCallback(const sensor_msgs::Image::ConstPtr &msg)
 			temporal.at<Point2f>(1, 0) = Point2f(matching_result.p2.at<double>(puntos.at<int>(0, 1), 0), matching_result.p2.at<double>(puntos.at<int>(0, 1), 1));
 			temporal.at<Point2f>(2, 0) = Point2f(matching_result.p2.at<double>(puntos.at<int>(0, 3), 0), matching_result.p2.at<double>(puntos.at<int>(0, 3), 1));
 			temporal.at<Point2f>(3, 0) = Point2f(matching_result.p2.at<double>(puntos.at<int>(0, 3), 0), matching_result.p2.at<double>(puntos.at<int>(0, 3), 1));
-			// cout << "[INFO] temporal: " << temporal << endl;
 			temporal.convertTo(matching_result.p2, CV_64F);
 
 			cout << "[INFO] img_points: " << img_points << endl;
@@ -408,6 +351,10 @@ void imageCallback(const sensor_msgs::Image::ConstPtr &msg)
 			new_points.convertTo(matching_result.p2, CV_64F);
 			img_points = new_points.clone();
 			actual.copyTo(img_old);
+
+			string saveIMG = "/src/vc_new_controller/src/data/img/" + to_string(contIMG++) + ".jpg";
+			imwrite(workspace + saveIMG, actual);
+			cout << "[INFO] << Image saved >>" << saveIMG << endl;
 		}
 
 		/************************************************************* Prepare message */
