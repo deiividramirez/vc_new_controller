@@ -109,21 +109,26 @@ int main(int argc, char **argv)
 
 	image_transport::ImageTransport it(nh);
 	image_transport::Subscriber image_sub;
+
 	/************************************************************* CREATING PUBLISHER AND SUBSCRIBER */
+	string image_dir;
 	if (state.params.camara == 0)
 	{
 		cout << "[INFO] Using hummingbird bottom camera" << endl;
 		image_sub = it.subscribe("/hummingbird/camera_nadir/image_raw", 1, imageCallback);
+		image_dir = "/src/vc_new_controller/src/desired.jpg";
 	}
 	else if (state.params.camara == 1)
 	{
 		cout << "[INFO] Using iris front camera" << endl;
 		image_sub = it.subscribe("/iris/camera_front_camera/image_raw", 1, imageCallback);
+		image_dir = "/src/vc_new_controller/src/desired2.jpg";
 	}
 	else if (state.params.camara == 2)
 	{
 		cout << "[INFO] Using iris bottom camera" << endl;
 		image_sub = it.subscribe("/iris/camera_under_camera/image_raw", 1, imageCallback);
+		image_dir = "/src/vc_new_controller/src/desired.jpg";
 	}
 	else
 	{
@@ -136,7 +141,7 @@ int main(int argc, char **argv)
 	// ros::Rate rate(120);
 
 	/************************************************************************** OPENING DESIRED IMAGE */
-	string image_dir = "/src/vc_new_controller/src/desired.jpg";
+
 	state.desired_configuration.img = imread(workspace + image_dir, IMREAD_COLOR);
 	if (state.desired_configuration.img.empty())
 	{

@@ -9,6 +9,7 @@ vz = np.loadtxt("Vz.txt")
 vyaw = np.loadtxt("Vyaw.txt")
 lamb = np.loadtxt("lambda.txt")
 
+if len(vx) < 2: exit()
 for i in range(2, len(vx)):
     if np.linalg.norm(vx[i]-vx[i-1]) > 1e-3:
       NUM = i
