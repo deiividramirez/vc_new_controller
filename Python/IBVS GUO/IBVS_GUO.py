@@ -244,7 +244,8 @@ def main():
     # ======================================  Draw cameras ========================================
     colores = np.random.rand(n_points,3)
 
-    fig = plt.figure(figsize=(10, 10))
+    # fig = plt.figure(figsize=(10, 10))
+    fig = plt.figure()
     fig.suptitle(f'Control #{1 if CONTROL==1 else 2}: {n_points} points', fontsize=16)
     ax = fig.add_subplot(2, 2, 1, projection='3d')
     ax = fig.gca()

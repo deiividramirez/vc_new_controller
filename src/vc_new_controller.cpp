@@ -300,7 +300,7 @@ void imageCallback(const sensor_msgs::Image::ConstPtr &msg)
 			temporal = Mat::zeros(4, 2, CV_32F);
 			temporal.at<Point2f>(0, 0) = Point2f(matching_result.p2.at<double>(puntos.at<int>(0, 0), 0), matching_result.p2.at<double>(puntos.at<int>(0, 0), 1));
 			temporal.at<Point2f>(1, 0) = Point2f(matching_result.p2.at<double>(puntos.at<int>(0, 1), 0), matching_result.p2.at<double>(puntos.at<int>(0, 1), 1));
-			temporal.at<Point2f>(2, 0) = Point2f(matching_result.p2.at<double>(puntos.at<int>(0, 3), 0), matching_result.p2.at<double>(puntos.at<int>(0, 3), 1));
+			temporal.at<Point2f>(2, 0) = Point2f(matching_result.p2.at<double>(puntos.at<int>(0, 2), 0), matching_result.p2.at<double>(puntos.at<int>(0, 2), 1));
 			temporal.at<Point2f>(3, 0) = Point2f(matching_result.p2.at<double>(puntos.at<int>(0, 3), 0), matching_result.p2.at<double>(puntos.at<int>(0, 3), 1));
 			temporal.convertTo(matching_result.p2, CV_64F);
 

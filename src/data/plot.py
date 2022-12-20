@@ -9,8 +9,13 @@ vz = np.loadtxt("Vz.txt")
 vyaw = np.loadtxt("Vyaw.txt")
 lamb = np.loadtxt("lambda.txt")
 
+for i in range(2, len(vx)):
+    if np.linalg.norm(vx[i]-vx[i-1]) > 1e-3:
+      NUM = i
+      break
+
 fig, ax = plt.subplots()
-ax.plot(time[3:],err[3:])
+ax.plot(time[NUM:],err[NUM:])
 
 plt.ylabel('Error Promedio (pixeles)')
 plt.xlabel('Tiempo (s)')
@@ -18,10 +23,10 @@ plt.title('Error promedio en funcion del tiempo')
 plt.show()
 
 fig, ax = plt.subplots()
-ax.plot(time[3:], vx[3:], label='$V_x$')
-ax.plot(time[3:],vy[3:],label='$V_y$')
-ax.plot(time[3:],vz[3:],label='$V_z$')
-ax.plot(time[3:],vyaw[3:],label='$W_z$')
+ax.plot(time[NUM:], vx[NUM:], label='$V_x$')
+ax.plot(time[NUM:],vy[NUM:],label='$V_y$')
+ax.plot(time[NUM:],vz[NUM:],label='$V_z$')
+ax.plot(time[NUM:],vyaw[NUM:],label='$W_z$')
 legend = ax.legend(loc='best', shadow=True, fontsize='x-large')
 
 plt.ylabel('Velocidades (u/s)')
@@ -30,7 +35,7 @@ plt.title('Velocidades en funcion del tiempo')
 plt.show()
 
 fig, ax = plt.subplots()
-ax.plot(time[3:],lamb[3:])
+ax.plot(time[NUM:],lamb[NUM:])
 
 plt.ylabel('Lambda')
 plt.xlabel('Tiempo (s)')
