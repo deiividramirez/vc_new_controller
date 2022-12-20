@@ -1,10 +1,3 @@
-/*
-Intel (Zapopan, Jal), Robotics Lab (CIMAT, Gto), Patricia Tavares & Gerardo Rodriguez.
-November 20th, 2017
-This ROS code is used to connect rotors_simulator hummingbird's camera
-and process the images to obtain the homography.
-*/
-
 #include "vc_new_controller.h"
 #include <opencv2/video/tracking.hpp>
 
@@ -28,9 +21,6 @@ vc_state state;
 
 // Result of the matching operation
 vc_homograpy_matching_result matching_result;
-
-//  Selector de control
-int contr_sel = 2;
 
 // Conteo de imágenes
 int contIMG = 0;
