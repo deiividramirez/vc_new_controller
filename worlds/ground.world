@@ -12,12 +12,6 @@
     </include> -->
     <include>
       <uri>model://aruco_box</uri>
-      <arg name="x" value="0"/>
-      <arg name="y" value="3"/>
-      <arg name="z" value="0"/>
-      <arg name="roll" value="0"/>
-      <arg name="pitch" value="0"/>
-      <arg name="yaw" value="0"/>
     </include>
 
     <!-- Only one ROS interface plugin is required per world, as any other plugin can connect a Gazebo

@@ -220,4 +220,6 @@ src/vc_state/select_decomposition.cpp
 src/vc_state/vc_state.cpp)
 target_link_libraries(vc_new_controller ${catkin_LIBRARIES})
 
-target_compile_definitions(vc_new_controller PUBLIC WORKSPACE="/home/remoto/catkin_ws")
+SET(CATKIN_WORSKPACE "$ENV{HOME}/catkin_ws")
+
+target_compile_definitions(vc_new_controller PUBLIC WORKSPACE="${CATKIN_WORSKPACE}")

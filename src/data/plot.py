@@ -9,6 +9,7 @@ vz = np.loadtxt("Vz.txt")
 vyaw = np.loadtxt("Vyaw.txt")
 lamb = np.loadtxt("lambda.txt")
 
+NUM = 0
 if len(vx) < 2: exit()
 for i in range(2, len(vx)):
     if np.linalg.norm(vx[i]-vx[i-1]) > 1e-3:
@@ -16,7 +17,10 @@ for i in range(2, len(vx)):
       break
 
 
-print(f"""INFORMACION DEL EXPERIMENTO
+print(f"""
+
+
+INFORMACION DEL EXPERIMENTO
 
 Tiempo de vuelo: {time[-1]} s
 Error promedio: {err[-1]} pixeles
