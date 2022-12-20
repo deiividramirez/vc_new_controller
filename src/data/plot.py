@@ -14,6 +14,23 @@ for i in range(2, len(vx)):
       NUM = i
       break
 
+
+print(f"""INFORMACION DEL EXPERIMENTO
+
+Tiempo de vuelo: {time[-1]} s
+Error promedio: {err[-1]} pixeles
+Velocidad media en x: {np.mean(vx[NUM:])} u/s
+Velocidad media en y: {np.mean(vy[NUM:])} u/s
+Velocidad media en z: {np.mean(vz[NUM:])} u/s
+Velocidad media en yaw: {np.mean(vyaw[NUM:])} u/s
+Lambda promedio: {np.mean(lamb[NUM:])}
+
+Error final: {err[-1]} pixeles
+Velocidad final en x: {vx[-1]} u/s
+Velocidad final en y: {vy[-1]} u/s
+Velocidad final en z: {vz[-1]} u/s
+Velocidad final en yaw: {vyaw[-1]} u/s""")
+
 fig, ax = plt.subplots()
 ax.plot(time[NUM:],err[NUM:])
 
