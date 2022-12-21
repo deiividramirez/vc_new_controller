@@ -58,9 +58,18 @@ std::pair<Eigen::VectorXd, float> vc_state::update()
 
   Eigen::VectorXd position;
   position.resize(3);
-  position(0) = this->X;
-  position(1) = this->Y;
-  position(2) = this->Z;
+  if (this->params.camara == 1)
+  {
+    position(0) = this->X;
+    position(1) = -this->Z;
+    position(2) = this->Y;
+  }
+  else
+  {
+    position(0) = this->X;
+    position(1) = this->Y;
+    position(2) = this->Z;
+  }
   return make_pair(position, this->Yaw);
 }
 

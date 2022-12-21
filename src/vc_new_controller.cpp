@@ -229,7 +229,7 @@ int main(int argc, char **argv)
 
 		// Update state with the current control
 		auto new_pose = state.update();
-
+		
 		// Prepare msg
 		msg.header.stamp = ros::Time::now();
 		mav_msgs::msgMultiDofJointTrajectoryFromPositionYaw(new_pose.first, new_pose.second, &msg);
@@ -306,7 +306,6 @@ void imageCallback(const sensor_msgs::Image::ConstPtr &msg)
 			cv::Ptr<cv::aruco::Dictionary> dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
 			cv::aruco::detectMarkers(actual, dictionary, markerCorners, markerIds, parameters, rejectedCandidates);
 
-
 			Mat temporal = Mat::zeros(4, 2, CV_32F);
 			temporal.at<Point2f>(0, 0) = Point2f(markerCorners[0][0].x, markerCorners[0][0].y);
 			temporal.at<Point2f>(1, 0) = Point2f(markerCorners[0][1].x, markerCorners[0][1].y);
@@ -366,13 +365,6 @@ void imageCallback(const sensor_msgs::Image::ConstPtr &msg)
 			imshow("Image", actual);
 			imshow("Desired", desired_temp);
 			waitKey(1);
-
-			// =====================================================================================================
-
-			// waitKey(0);
-			// exit(-1);
-
-			// =====================================================================================================
 
 			new_points.convertTo(matching_result.p2, CV_64F);
 			img_points = new_points.clone();
