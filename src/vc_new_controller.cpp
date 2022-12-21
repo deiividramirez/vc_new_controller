@@ -193,7 +193,7 @@ int main(int argc, char **argv)
 	string file_folder = "/src/vc_new_controller/src/data/";
 
 	/******************************************************************************* CYCLE START*/
-	while (ros::ok() && contIMG < 1000)
+	while (ros::ok() && contIMG < 500)
 	{
 		// get a msg
 		ros::spinOnce();
