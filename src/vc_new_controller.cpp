@@ -229,7 +229,7 @@ int main(int argc, char **argv)
 
 		// Update state with the current control
 		auto new_pose = state.update();
-		
+
 		// Prepare msg
 		msg.header.stamp = ros::Time::now();
 		mav_msgs::msgMultiDofJointTrajectoryFromPositionYaw(new_pose.first, new_pose.second, &msg);
@@ -266,6 +266,10 @@ void imageCallback(const sensor_msgs::Image::ConstPtr &msg)
 	{
 		Mat actual = cv_bridge::toCvShare(msg, "bgr8")->image;
 		cout << "[INFO] Image received" << endl;
+
+		string saveIMG = "/src/vc_new_controller/src/data/img/" + to_string(contIMG++) + ".jpg";
+		imwrite(workspace + saveIMG, actual);
+		cout << "[INFO] << Image saved >>" << saveIMG << endl;
 
 		if (contIMG < 3)
 		{
@@ -369,10 +373,6 @@ void imageCallback(const sensor_msgs::Image::ConstPtr &msg)
 			new_points.convertTo(matching_result.p2, CV_64F);
 			img_points = new_points.clone();
 			actual.copyTo(img_old);
-
-			string saveIMG = "/src/vc_new_controller/src/data/img/" + to_string(contIMG++) + ".jpg";
-			imwrite(workspace + saveIMG, actual);
-			cout << "[INFO] << Image saved >>" << saveIMG << endl;
 		}
 
 		/************************************************************* Prepare message */

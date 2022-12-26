@@ -1,8 +1,8 @@
-import click
-import cv2
 from cv2 import aruco
 import numpy as np
+import click
 import yaml
+import cv2
 import os
 
 class MarkerFactory:
