@@ -51,18 +51,18 @@ std::pair<Eigen::VectorXd, float> vc_state::update()
   this->t += this->dt;
   // Integrating
 
-  if (this->params.camara == 1)
-  {
-    this->X = this->X + this->Kv * -this->Vz * this->dt;
-    this->Y = this->Y + this->Kv * this->Vy * this->dt;
-    this->Z = this->Z + this->Kv * this->Vx * this->dt;
-  }
-  else
-  {
-    this->X = this->X + this->Kv * this->Vx * this->dt;
-    this->Y = this->Y + this->Kv * this->Vy * this->dt;
-    this->Z = this->Z + this->Kv * this->Vz * this->dt;
-  }
+  // if (this->params.camara == 1)
+  // {
+  //   this->X = this->X + this->Kv * -this->Vz * this->dt;
+  //   this->Y = this->Y + this->Kv * this->Vy * this->dt;
+  //   this->Z = this->Z + this->Kv * this->Vx * this->dt;
+  // }
+  // else
+  // {
+  this->X = this->X + this->Kv * this->Vx * this->dt;
+  this->Y = this->Y + this->Kv * this->Vy * this->dt;
+  this->Z = this->Z + this->Kv * this->Vz * this->dt;
+  // }
   this->Yaw = this->Yaw + this->Kw * this->Vyaw * this->dt;
   cout << "X: " << this->X << " Y:" << this->Y << " Z:" << this->Z << endl;
 

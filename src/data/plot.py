@@ -10,11 +10,12 @@ vyaw = np.loadtxt("Vyaw.txt")
 lamb = np.loadtxt("lambda.txt")
 
 NUM = 0
-if len(vx) < 2: exit()
+if len(vx) < 2:
+    exit()
 for i in range(2, len(vx)):
     if np.linalg.norm(vx[i]-vx[i-1]) > 1e-3:
-      NUM = i
-      break
+        NUM = i
+        break
 
 
 print(f"""
@@ -36,31 +37,24 @@ Velocidad final en y: {vy[-1]} u/s
 Velocidad final en z: {vz[-1]} u/s
 Velocidad final en yaw: {vyaw[-1]} u/s""")
 
-fig, ax = plt.subplots()
-ax.plot(time[NUM:],err[NUM:])
+fig, ax = plt.subplots(3, 1)
+fig.canvas.set_window_title('Resultados del experimento')
 
-plt.ylabel('Error Promedio (pixeles)')
-plt.xlabel('Tiempo (s)')
-plt.title('Error promedio en funcion del tiempo')
+ax[0].plot(time[NUM:], err[NUM:], "purple")
+
+ax[0].set_ylabel('Error Promedio')
+
+ax[1].plot(time[NUM:], vx[NUM:], label='$V_x$')
+ax[1].plot(time[NUM:], vy[NUM:], label='$V_y$')
+ax[1].plot(time[NUM:], vz[NUM:], label='$V_z$')
+ax[1].plot(time[NUM:], vyaw[NUM:], label='$W_z$')
+
+ax[1].legend(loc='right', shadow=True)
+ax[1].set_ylabel('Velocidades')
+
+ax[2].plot(time[NUM:], lamb[NUM:], "r")
+ax[2].set_ylabel('Lambda')
+ax[2].set_xlabel('Tiempo (s)')
+
+plt.tight_layout()
 plt.show()
-
-fig, ax = plt.subplots()
-ax.plot(time[NUM:], vx[NUM:], label='$V_x$')
-ax.plot(time[NUM:],vy[NUM:],label='$V_y$')
-ax.plot(time[NUM:],vz[NUM:],label='$V_z$')
-ax.plot(time[NUM:],vyaw[NUM:],label='$W_z$')
-legend = ax.legend(loc='best', shadow=True, fontsize='x-large')
-
-plt.ylabel('Velocidades (u/s)')
-plt.xlabel('Tiempo (s)')
-plt.title('Velocidades en funcion del tiempo')
-plt.show()
-
-fig, ax = plt.subplots()
-ax.plot(time[NUM:],lamb[NUM:])
-
-plt.ylabel('Lambda')
-plt.xlabel('Tiempo (s)')
-plt.title('Lambda en funcion del tiempo')
-plt.show()
-
