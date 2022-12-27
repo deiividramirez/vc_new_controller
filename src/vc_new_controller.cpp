@@ -185,6 +185,7 @@ int main(int argc, char **argv)
 	vector<float> vel_z;
 	vector<float> vel_yaw;
 	vector<float> errors;
+	vector<float> errors_pix;
 	vector<float> time;
 	vector<float> lambda;
 
@@ -193,7 +194,7 @@ int main(int argc, char **argv)
 	string file_folder = "/src/vc_new_controller/src/data/";
 
 	/******************************************************************************* CYCLE START*/
-	while (ros::ok() && contIMG < 500)
+	while (ros::ok() && contIMG < 1000)
 	{
 		// get a msg
 		ros::spinOnce();
@@ -207,6 +208,7 @@ int main(int argc, char **argv)
 		// save data
 		time.push_back(state.t);
 		errors.push_back((float)matching_result.mean_feature_error);
+		errors_pix.push_back((float)matching_result.mean_feature_error_pix);
 		vel_x.push_back(state.Vx);
 		vel_y.push_back(state.Vy);
 		vel_z.push_back(state.Vz);
@@ -241,6 +243,7 @@ int main(int argc, char **argv)
 
 	// save data
 	writeFile(errors, workspace + file_folder + "errors.txt");
+	writeFile(errors_pix, workspace + file_folder + "errors_pix.txt");
 	writeFile(time, workspace + file_folder + "time.txt");
 	writeFile(vel_x, workspace + file_folder + "Vx.txt");
 	writeFile(vel_y, workspace + file_folder + "Vy.txt");

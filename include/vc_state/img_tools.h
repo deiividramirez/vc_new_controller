@@ -49,6 +49,7 @@ typedef struct vc_homograpy_matching_result
     cv::Mat p1;
     cv::Mat p2;
     double mean_feature_error = 1e10;
+    double mean_feature_error_pix = 1e10;
 } vc_homograpy_matching_result;
 
 typedef struct vc_desired_configuration

@@ -69,14 +69,11 @@ int distances(Mat p1,                      // Points in the target image
         //         NUM = 100;
         // }
 
-        for (int i_temp = 0; i_temp < NUM; i_temp++)
+        for (int i = 0; i < NUM; i++)
         {
-                for (int j_temp = 0; j_temp < NUM; j_temp++)
+                // for (int j = 0; j < NUM; j++)
+                for (int j = 0; j < i; j++)
                 {
-                        // i = (int) rand() % p2.rows;
-                        // j = (int) rand() % p2.rows;
-                        i = i_temp;
-                        j = j_temp;
                         if (i != j)
                         {
                                 double dot1 = (double)(p2.row(i).dot(p2.row(j)));
@@ -194,7 +191,7 @@ int GUO(Mat img,                                      // Image to be processed
         // }
 
         // Temporal matrixes for calculation
-        Mat p1s, p2s, p23D, Lo, ERROR, U, U_temp, L;
+        Mat p1s, p2s, p23D, Lo, U, U_temp, L;
         p1s = Mat::zeros(matching_result.p1.rows, 3, CV_64F);
         p2s = Mat::zeros(matching_result.p2.rows, 3, CV_64F);
         p23D = Mat::zeros(matching_result.p2.rows, 3, CV_64F);
@@ -217,11 +214,15 @@ int GUO(Mat img,                                      // Image to be processed
 
         // Get interaction matrix and error vector with distances
         L = Lvl(p2s, distancias, state.params);
-        for (int i = 0; i < distancias.size(); i++)
+        Mat ERROR = Mat::zeros(distancias.size(), 1, CV_64F), ERROR_PIX = Mat::zeros(distancias.size(), 1, CV_64F);
+
         // for (int i = 0; i < 16; i++)
+        for (int i = 0; i < distancias.size(); i++)
         {
-                ERROR.push_back(distancias[i].dist2 - distancias[i].dist);
+                ERROR.at<double>(i, 0) = (double)distancias[i].dist2 - (double)distancias[i].dist;
+                ERROR_PIX.at<double>(i, 0) = (double)norm(matching_result.p1.row(distancias[i].i) - matching_result.p2.row(distancias[i].i));
                 cout << i << " Distancia: " << distancias[i].dist << " Distancia2: " << distancias[i].dist2 << endl;
+                // cout << "Pixeles: " << matching_result.p1.row(distancias[i].i) << " - " << matching_result.p2.row(distancias[i].j) << " -> " << norm(matching_result.p1.row(distancias[i].i) - matching_result.p2.row(distancias[i].j)) << endl;
         }
 
         // Mat a = Mat(matching_result.p1);
@@ -229,6 +230,10 @@ int GUO(Mat img,                                      // Image to be processed
         // matching_result.mean_feature_error = norm(a, b) / ((double)matching_result.p1.rows);
 
         matching_result.mean_feature_error = norm(ERROR, NORM_L2);
+        matching_result.mean_feature_error_pix = norm(ERROR_PIX, NORM_L2);
+
+        cout << "[INFO] Error actual: " << matching_result.mean_feature_error << endl;
+
         // Mat a = Mat(matching_result.p1);
         // Mat b = Mat(matching_result.p2);
         // matching_result.mean_feature_error = norm(a, b) / ((double)matching_result.p1.rows);
@@ -251,7 +256,7 @@ int GUO(Mat img,                                      // Image to be processed
         //         U_temp = -2 * lambda * Lo * ERROR;
         // }
 
-        double l0 = 2 * lambda, linf = lambda, lprima = 1;
+        double l0 = 3 * lambda, linf = lambda, lprima = 1;
         double lambda_temp = (l0 - linf) * exp(-(lprima * matching_result.mean_feature_error) / (l0 - linf)) + linf;
 
         U_temp = -lambda_temp * Lo * ERROR;
