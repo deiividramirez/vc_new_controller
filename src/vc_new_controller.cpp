@@ -280,55 +280,59 @@ void imageCallback(const sensor_msgs::Image::ConstPtr &msg)
 			cout << endl
 					 << "[INFO] Detecting keypoints" << endl;
 
-			// if (compute_descriptors(actual, state.params, state.desired_configuration, matching_result) < 0)
-			// {
-			// 	cout << "[ERROR] Error en compute_descriptors" << endl;
-			// 	return;
-			// }
+			if (state.params.camara != 1)
+			{
+				if (compute_descriptors(actual, state.params, state.desired_configuration, matching_result) < 0)
+				{
+					cout << "[ERROR] Error en compute_descriptors" << endl;
+					return;
+				}
 
-			// Mat puntos = Orden(matching_result.p2);
-			// img_points = Mat(4, 2, CV_32F);
-			// img_points.at<Point2f>(0, 0) = Point2f(matching_result.p2.at<double>(puntos.at<int>(0, 0), 0), matching_result.p2.at<double>(puntos.at<int>(0, 0), 1));
-			// img_points.at<Point2f>(1, 0) = Point2f(matching_result.p2.at<double>(puntos.at<int>(0, 1), 0), matching_result.p2.at<double>(puntos.at<int>(0, 1), 1));
-			// img_points.at<Point2f>(2, 0) = Point2f(matching_result.p2.at<double>(puntos.at<int>(0, 2), 0), matching_result.p2.at<double>(puntos.at<int>(0, 2), 1));
-			// img_points.at<Point2f>(3, 0) = Point2f(matching_result.p2.at<double>(puntos.at<int>(0, 3), 0), matching_result.p2.at<double>(puntos.at<int>(0, 3), 1));
+				Mat puntos = Orden(matching_result.p2);
+				img_points = Mat(4, 2, CV_32F);
+				img_points.at<Point2f>(0, 0) = Point2f(matching_result.p2.at<double>(puntos.at<int>(0, 0), 0), matching_result.p2.at<double>(puntos.at<int>(0, 0), 1));
+				img_points.at<Point2f>(1, 0) = Point2f(matching_result.p2.at<double>(puntos.at<int>(0, 1), 0), matching_result.p2.at<double>(puntos.at<int>(0, 1), 1));
+				img_points.at<Point2f>(2, 0) = Point2f(matching_result.p2.at<double>(puntos.at<int>(0, 2), 0), matching_result.p2.at<double>(puntos.at<int>(0, 2), 1));
+				img_points.at<Point2f>(3, 0) = Point2f(matching_result.p2.at<double>(puntos.at<int>(0, 3), 0), matching_result.p2.at<double>(puntos.at<int>(0, 3), 1));
 
-			// Mat temporal = Mat::zeros(4, 2, CV_32F);
-			// temporal.at<Point2f>(0, 0) = Point2f(matching_result.p1.at<double>(puntos.at<int>(0, 0), 0), matching_result.p1.at<double>(puntos.at<int>(0, 0), 1));
-			// temporal.at<Point2f>(1, 0) = Point2f(matching_result.p1.at<double>(puntos.at<int>(0, 1), 0), matching_result.p1.at<double>(puntos.at<int>(0, 1), 1));
-			// temporal.at<Point2f>(2, 0) = Point2f(matching_result.p1.at<double>(puntos.at<int>(0, 2), 0), matching_result.p1.at<double>(puntos.at<int>(0, 2), 1));
-			// temporal.at<Point2f>(3, 0) = Point2f(matching_result.p1.at<double>(puntos.at<int>(0, 3), 0), matching_result.p1.at<double>(puntos.at<int>(0, 3), 1));
-			// temporal.convertTo(matching_result.p1, CV_64F);
+				Mat temporal = Mat::zeros(4, 2, CV_32F);
+				temporal.at<Point2f>(0, 0) = Point2f(matching_result.p1.at<double>(puntos.at<int>(0, 0), 0), matching_result.p1.at<double>(puntos.at<int>(0, 0), 1));
+				temporal.at<Point2f>(1, 0) = Point2f(matching_result.p1.at<double>(puntos.at<int>(0, 1), 0), matching_result.p1.at<double>(puntos.at<int>(0, 1), 1));
+				temporal.at<Point2f>(2, 0) = Point2f(matching_result.p1.at<double>(puntos.at<int>(0, 2), 0), matching_result.p1.at<double>(puntos.at<int>(0, 2), 1));
+				temporal.at<Point2f>(3, 0) = Point2f(matching_result.p1.at<double>(puntos.at<int>(0, 3), 0), matching_result.p1.at<double>(puntos.at<int>(0, 3), 1));
+				temporal.convertTo(matching_result.p1, CV_64F);
 
-			// temporal = Mat::zeros(4, 2, CV_32F);
-			// temporal.at<Point2f>(0, 0) = Point2f(matching_result.p2.at<double>(puntos.at<int>(0, 0), 0), matching_result.p2.at<double>(puntos.at<int>(0, 0), 1));
-			// temporal.at<Point2f>(1, 0) = Point2f(matching_result.p2.at<double>(puntos.at<int>(0, 1), 0), matching_result.p2.at<double>(puntos.at<int>(0, 1), 1));
-			// temporal.at<Point2f>(2, 0) = Point2f(matching_result.p2.at<double>(puntos.at<int>(0, 2), 0), matching_result.p2.at<double>(puntos.at<int>(0, 2), 1));
-			// temporal.at<Point2f>(3, 0) = Point2f(matching_result.p2.at<double>(puntos.at<int>(0, 3), 0), matching_result.p2.at<double>(puntos.at<int>(0, 3), 1));
-			// temporal.convertTo(matching_result.p2, CV_64F);
+				temporal = Mat::zeros(4, 2, CV_32F);
+				temporal.at<Point2f>(0, 0) = Point2f(matching_result.p2.at<double>(puntos.at<int>(0, 0), 0), matching_result.p2.at<double>(puntos.at<int>(0, 0), 1));
+				temporal.at<Point2f>(1, 0) = Point2f(matching_result.p2.at<double>(puntos.at<int>(0, 1), 0), matching_result.p2.at<double>(puntos.at<int>(0, 1), 1));
+				temporal.at<Point2f>(2, 0) = Point2f(matching_result.p2.at<double>(puntos.at<int>(0, 2), 0), matching_result.p2.at<double>(puntos.at<int>(0, 2), 1));
+				temporal.at<Point2f>(3, 0) = Point2f(matching_result.p2.at<double>(puntos.at<int>(0, 3), 0), matching_result.p2.at<double>(puntos.at<int>(0, 3), 1));
+				temporal.convertTo(matching_result.p2, CV_64F);
+			}
+			else
+			{
+				std::vector<int> markerIds;
+				std::vector<std::vector<cv::Point2f>> markerCorners, rejectedCandidates;
+				cv::Ptr<cv::aruco::DetectorParameters> parameters = cv::aruco::DetectorParameters::create();
+				cv::Ptr<cv::aruco::Dictionary> dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
+				cv::aruco::detectMarkers(actual, dictionary, markerCorners, markerIds, parameters, rejectedCandidates);
 
-			std::vector<int> markerIds;
-			std::vector<std::vector<cv::Point2f>> markerCorners, rejectedCandidates;
-			cv::Ptr<cv::aruco::DetectorParameters> parameters = cv::aruco::DetectorParameters::create();
-			cv::Ptr<cv::aruco::Dictionary> dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
-			cv::aruco::detectMarkers(actual, dictionary, markerCorners, markerIds, parameters, rejectedCandidates);
+				Mat temporal = Mat::zeros(4, 2, CV_32F);
+				temporal.at<Point2f>(0, 0) = Point2f(markerCorners[0][0].x, markerCorners[0][0].y);
+				temporal.at<Point2f>(1, 0) = Point2f(markerCorners[0][1].x, markerCorners[0][1].y);
+				temporal.at<Point2f>(2, 0) = Point2f(markerCorners[0][2].x, markerCorners[0][2].y);
+				temporal.at<Point2f>(3, 0) = Point2f(markerCorners[0][3].x, markerCorners[0][3].y);
+				temporal.convertTo(matching_result.p2, CV_64F);
+				temporal.convertTo(img_points, CV_32F);
 
-			Mat temporal = Mat::zeros(4, 2, CV_32F);
-			temporal.at<Point2f>(0, 0) = Point2f(markerCorners[0][0].x, markerCorners[0][0].y);
-			temporal.at<Point2f>(1, 0) = Point2f(markerCorners[0][1].x, markerCorners[0][1].y);
-			temporal.at<Point2f>(2, 0) = Point2f(markerCorners[0][2].x, markerCorners[0][2].y);
-			temporal.at<Point2f>(3, 0) = Point2f(markerCorners[0][3].x, markerCorners[0][3].y);
-			temporal.convertTo(matching_result.p2, CV_64F);
-			temporal.convertTo(img_points, CV_32F);
-
-			cv::aruco::detectMarkers(state.desired_configuration.img, dictionary, markerCorners, markerIds, parameters, rejectedCandidates);
-			temporal = Mat::zeros(4, 2, CV_32F);
-			temporal.at<Point2f>(0, 0) = Point2f(markerCorners[0][0].x, markerCorners[0][0].y);
-			temporal.at<Point2f>(1, 0) = Point2f(markerCorners[0][1].x, markerCorners[0][1].y);
-			temporal.at<Point2f>(2, 0) = Point2f(markerCorners[0][2].x, markerCorners[0][2].y);
-			temporal.at<Point2f>(3, 0) = Point2f(markerCorners[0][3].x, markerCorners[0][3].y);
-			temporal.convertTo(matching_result.p1, CV_64F);
-
+				cv::aruco::detectMarkers(state.desired_configuration.img, dictionary, markerCorners, markerIds, parameters, rejectedCandidates);
+				temporal = Mat::zeros(4, 2, CV_32F);
+				temporal.at<Point2f>(0, 0) = Point2f(markerCorners[0][0].x, markerCorners[0][0].y);
+				temporal.at<Point2f>(1, 0) = Point2f(markerCorners[0][1].x, markerCorners[0][1].y);
+				temporal.at<Point2f>(2, 0) = Point2f(markerCorners[0][2].x, markerCorners[0][2].y);
+				temporal.at<Point2f>(3, 0) = Point2f(markerCorners[0][3].x, markerCorners[0][3].y);
+				temporal.convertTo(matching_result.p1, CV_64F);
+			}
 			cout << "[INFO] img_points: " << img_points << endl;
 			cout << "[INFO] matching_result.p1: " << matching_result.p1 << endl;
 			cout << "[INFO] matching_result.p2: " << matching_result.p2 << endl;
