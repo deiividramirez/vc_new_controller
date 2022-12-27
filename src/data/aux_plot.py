@@ -39,7 +39,7 @@ for i in range(2, len(vx)):
 print(f"""
 
 
-INFORMACION DEL EXPERIMENTO
+INFORMACIÓN DEL EXPERIMENTO
 
 Tiempo de vuelo: {time[-1]} s
 Error promedio: {np.mean(err[NUM:])} pixeles
