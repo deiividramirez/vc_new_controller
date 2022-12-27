@@ -12,31 +12,43 @@ Este repositorio fue hecho para implementar una modificación al algoritmo descr
 
 ### Instalación con dos líneas
 
-```bash
+~~~ bash
 wget -c https://raw.githubusercontent.com/qboticslabs/ros_install_noetic/master/ros_install_noetic.sh && chmod +x ./ros_install_noetic.sh && ./ros_install_noetic.sh
-```
+~~~
 
 ### Comprobación de los paquetes instalados
 
-```bash
+~~~ bash
 sudo apt-get install ros-noetic-desktop-full ros-noetic-joy ros-noetic-octomap-ros ros-noetic-mavlink protobuf-compiler libgoogle-glog-dev ros-noetic-control-toolbox python3-wstool python3-catkin-tools
-```
+~~~
 
 ### Preparación de Python 3
 
-```bash
+Si no se tiene instalado pip en *Python 3.7+*:
+
+~~~ bash
 sudo curl https://bootstrap.pypa.io/get-pip.py | sudo python3
 sudo curl https://bootstrap.pypa.io/get-pip.py | python3
-echo 'export PATH=$PATH:"$HOME/.local/bin"' >> ~/.bashrc
-source ~/.bashrc
-```
+~~~
+
+### Añadir a variables de entorno
+* Bash
+ ~~~bash
+ echo 'export PATH=$PATH:"$HOME/.local/bin"' >> ~/.bashrc
+ source ~/.bashrc
+ ~~~
+* Zsh
+ ~~~zsh
+ echo 'export PATH=$PATH:"$HOME/.local/bin"' >> ~/.zshrc
+ source ~/.zshrc
+ ~~~
 
 ### Instalación de paquetes de ROS adicionales en Python 3
   
-```bash
+~~~ bash
 sudo python3 -m pip install -U rosdep catkin_pkg future
-python3 -m pip install -U rosdep catkin_pkg future
-```
+python3 -m pip install -U rosdep catkin_pkg future empy defusedxml numpy matplotlib imageio opencv-python
+~~~
 
 ## Preparación del espacio CATKIN
 
@@ -67,11 +79,10 @@ wstool update
 ```bash
 cd ~/catkin_ws/src
 git clone https://github.com/deiividramirez/vc_new_controller
+git clone https://github.com/deiividramirez/placing_iris.git
 ```
 
 ### Construcción del espacio
-  
-#### BASH:
 
 ```bash
 # Inicialización de rosdep y recolección de paquetes
@@ -82,26 +93,21 @@ cd ~/catkin_ws/
 rosdep install --from-paths . --ignore-src --rosdistro noetic -y
 # Construcción de catkin_workspace
 catkin build
-# Añadir variables de entorno
-echo "source ~/catkin_ws/devel/setup.bash" >> ~/.bashrc
-source ~/.bashrc
-```
+``` 
 
-#### ZSH:
+### Añadir las variables de entorno
 
-```bash
-# Inicialización de rosdep y recolección de paquetes
-sudo rosdep init
-rosdep update
-cd ~/catkin_ws/
-# Actualización de paquetes rotos o dependencias
-rosdep install --from-paths . --ignore-src --rosdistro noetic -y
-# Construcción de catkin_workspace
-catkin build
-# Añadir variables de entorno
-echo "source ~/catkin_ws/devel/setup.zsh" >> ~/.zshrc
-source ~/.zshrc
-```
+* Bash
+ ```bash
+ echo "source ~/catkin_ws/devel/setup.bash" >> ~/.bashrc
+ source ~/.bashrc
+ ```
+* Zsh
+ 
+ ```zsh
+ echo "source ~/catkin_ws/devel/setup.zsh" >> ~/.zshrc
+ source ~/.zshrc
+ ```
 
 ## Ejecución
 
