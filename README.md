@@ -33,15 +33,16 @@ sudo curl https://bootstrap.pypa.io/get-pip.py | python3
 ~~~
 
 ### Añadir a variables de entorno
-~~~bash
-echo 'export PATH=$PATH:"$HOME/.local/bin"' >> ~/.bashrc
-source ~/.bashrc
-~~~
-
-~~~zsh
-echo 'export PATH=$PATH:"$HOME/.local/bin"' >> ~/.zshrc
-source ~/.zshrc
-~~~
+* Bash
+ ~~~bash
+ echo 'export PATH=$PATH:"$HOME/.local/bin"' >> ~/.bashrc
+ source ~/.bashrc
+ ~~~
+* Zsh
+ ~~~zsh
+ echo 'export PATH=$PATH:"$HOME/.local/bin"' >> ~/.zshrc
+ source ~/.zshrc
+ ~~~
 
 ### Instalación de paquetes de ROS adicionales en Python 3
   
@@ -97,15 +98,17 @@ catkin build
 
 ### Añadir las variables de entorno
 
-```bash
-echo "source ~/catkin_ws/devel/setup.bash" >> ~/.bashrc
-source ~/.bashrc
-```
-
-```zsh
-echo "source ~/catkin_ws/devel/setup.zsh" >> ~/.zshrc
-source ~/.zshrc
-```
+* Bash
+ ```bash
+ echo "source ~/catkin_ws/devel/setup.bash" >> ~/.bashrc
+ source ~/.bashrc
+ ```
+* Zsh
+ 
+ ```zsh
+ echo "source ~/catkin_ws/devel/setup.zsh" >> ~/.zshrc
+ source ~/.zshrc
+ ```
 
 ## Ejecución
 
