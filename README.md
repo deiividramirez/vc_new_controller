@@ -30,8 +30,17 @@ Si no se tiene instalado pip en *Python 3.7+*:
 ~~~ bash
 sudo curl https://bootstrap.pypa.io/get-pip.py | sudo python3
 sudo curl https://bootstrap.pypa.io/get-pip.py | python3
+~~~
+
+### Añadir a variables de entorno
+~~~bash
 echo 'export PATH=$PATH:"$HOME/.local/bin"' >> ~/.bashrc
 source ~/.bashrc
+~~~
+
+~~~zsh
+echo 'export PATH=$PATH:"$HOME/.local/bin"' >> ~/.zshrc
+source ~/.zshrc
 ~~~
 
 ### Instalación de paquetes de ROS adicionales en Python 3
