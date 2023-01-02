@@ -46,4 +46,5 @@ control: 1
 # 0 Para cámara de humminbird
 # 1 Para cámara de iris - frontal
 # 2 Para cámara de iris - abajo
-camara: 1
+# 3 Para cámara de iris - Ambas
+camara: 3

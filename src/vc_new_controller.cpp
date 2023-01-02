@@ -7,6 +7,7 @@ using namespace std;
 
 /* Declaring callbacks and other functions*/
 void imageCallback(const sensor_msgs::Image::ConstPtr &msg);
+void imageCallback2(const sensor_msgs::Image::ConstPtr &msg);
 void poseCallback(const geometry_msgs::Pose::ConstPtr &msg);
 void writeFile(vector<float> &vec, const string &name);
 
@@ -98,7 +99,7 @@ int main(int argc, char **argv)
 	state.load(nh);
 
 	image_transport::ImageTransport it(nh);
-	image_transport::Subscriber image_sub;
+	image_transport::Subscriber image_sub, image_sub2;
 
 	/************************************************************* CREATING PUBLISHER AND SUBSCRIBER */
 	string image_dir;
@@ -111,14 +112,22 @@ int main(int argc, char **argv)
 	else if (state.params.camara == 1)
 	{
 		cout << "[INFO] Using iris front camera" << endl;
-		image_sub = it.subscribe("/iris/camera_front_camera/image_raw", 1, imageCallback);
+		image_sub = it.subscribe("/iris_1/camera_front_camera/image_raw", 1, imageCallback);
 		image_dir = "/src/vc_new_controller/src/desired2.jpg";
 	}
 	else if (state.params.camara == 2)
 	{
 		cout << "[INFO] Using iris bottom camera" << endl;
-		image_sub = it.subscribe("/iris/camera_under_camera/image_raw", 1, imageCallback);
+		image_sub = it.subscribe("/iris_1/camera_under_camera/image_raw", 1, imageCallback);
 		image_dir = "/src/vc_new_controller/src/desired.jpg";
+	}
+	else if (state.params.camara == 3)
+	{
+		state.params.camara = 1;
+		cout << "[INFO] Using both cameras" << endl;
+		image_sub = it.subscribe("/iris_1/camera_front_camera/image_raw", 1, imageCallback);
+		image_sub2 = it.subscribe("/iris_1/camera_under_camera/image_raw", 1, imageCallback2);
+		image_dir = "/src/vc_new_controller/src/desired2.jpg";
 	}
 	else
 	{
@@ -175,8 +184,8 @@ int main(int argc, char **argv)
 	{
 		cout << "[INFO] Iris trajectory and pose" << endl
 				 << endl;
-		pos_pub = nh.advertise<trajectory_msgs::MultiDOFJointTrajectory>("/iris/command/trajectory", 1);
-		pos_sub = nh.subscribe<geometry_msgs::Pose>("/iris/ground_truth/pose", 1, poseCallback);
+		pos_pub = nh.advertise<trajectory_msgs::MultiDOFJointTrajectory>("/iris_1/command/trajectory", 1);
+		pos_sub = nh.subscribe<geometry_msgs::Pose>("/iris_1/ground_truth/pose", 1, poseCallback);
 	}
 
 	/**************************************************************************** data for graphics */
@@ -194,7 +203,7 @@ int main(int argc, char **argv)
 	string file_folder = "/src/vc_new_controller/src/data/";
 
 	/******************************************************************************* CYCLE START*/
-	while (ros::ok() && contIMG < 1000)
+	while (ros::ok())
 	{
 		// get a msg
 		ros::spinOnce();
@@ -218,8 +227,8 @@ int main(int argc, char **argv)
 		if (matching_result.mean_feature_error < state.params.feature_threshold)
 		{
 			cout << endl
-					 << "[INFO] Target reached" << endl
-					 << endl;
+					 << "[INFO] Target reached within the feature threshold and maximum iterations" << endl
+			<< endl;
 			waitKey(0);
 			break;
 		}
@@ -239,6 +248,12 @@ int main(int argc, char **argv)
 		// Publish msg
 		pos_pub.publish(msg);
 		rate.sleep();
+
+		if (contIMG > 1000)
+		{
+			cout << "[ERROR] No convergence, quitting" << endl;
+			break;
+		}
 	}
 
 	// save data
@@ -373,7 +388,7 @@ void imageCallback(const sensor_msgs::Image::ConstPtr &msg)
 				circle(actual, img_points.at<Point2f>(i, 0), 3, Scalar(0, 0, 255), -1);
 			}
 
-			imshow("Image", actual);
+			imshow("Cámara frontal", actual);
 			imshow("Desired", desired_temp);
 			waitKey(1);
 
@@ -396,6 +411,24 @@ void imageCallback(const sensor_msgs::Image::ConstPtr &msg)
 		if (state.initialized)
 			cout << "[VELS] Vx: " << state.Vx << ", Vy: " << state.Vy << ", Vz: " << state.Vz << "\nVroll: " << state.Vroll << ", Vpitch: " << state.Vpitch << ", Wyaw: " << state.Vyaw << "\n==> average error: " << matching_result.mean_feature_error << "<==" << endl
 					 << "===================================================================\n\n";
+	}
+	catch (cv_bridge::Exception &e)
+	{
+		ROS_ERROR("Could not convert from '%s' to 'bgr8'.",
+							msg->encoding.c_str());
+	}
+}
+
+void imageCallback2(const sensor_msgs::Image::ConstPtr &msg)
+{
+	cout << "[INFO] ImageCallback function" << endl;
+	try
+	{
+		Mat actual = cv_bridge::toCvShare(msg, "bgr8")->image;
+		cout << "[INFO] Image received" << endl;
+
+		imshow("Cámara de abajo", actual);
+		waitKey(1);
 	}
 	catch (cv_bridge::Exception &e)
 	{
