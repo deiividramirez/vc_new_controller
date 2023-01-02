@@ -44,9 +44,9 @@
 
   <group ns="$(arg mav_name)_1">
     <include file="$(find vc_new_controller)/launch/spawn_mav.launch">
-      <arg name="mav_name" value="$(arg mav_name)" />
+      <arg name="mav_name" value="iris2" />
       <arg name="namespace" value="$(arg mav_name)_1" />
-      <arg name="model" value="$(find rotors_description)/urdf/mav_generic_odometry_sensor.gazebo" />
+      <arg name="model" value="$(find vc_new_controller)/urdf/mav_generic_odometry_sensor.gazebo" />
       <arg name="enable_logging" value="$(arg enable_logging)" />
       <arg name="enable_ground_truth" value="$(arg enable_ground_truth)" />
       <arg name="log_file" value="$(arg log_file)" />
@@ -56,8 +56,8 @@
     <node name="lee_position_controller_node" pkg="rotors_control"
       type="lee_position_controller_node" output="screen">
       <rosparam command="load"
-        file="$(find vc_new_controller)/resource/lee_controller_$(arg mav_name).yaml" />
-      <rosparam command="load" file="$(find vc_new_controller)/resource/$(arg mav_name).yaml" />
+        file="$(find vc_new_controller)/resource/lee_controller_iris.yaml" />
+      <rosparam command="load" file="$(find vc_new_controller)/resource/iris.yaml" />
       <remap from="odometry" to="odometry_sensor1/odometry" />
     </node>
     <node name="waypoint_publisher" pkg="rotors_gazebo" type="waypoint_publisher" output="screen"
@@ -69,9 +69,9 @@
 
   <group ns="$(arg mav_name)_2">
     <include file="$(find vc_new_controller)/launch/spawn_mav.launch">
-      <arg name="mav_name" value="$(arg mav_name)" />
+      <arg name="mav_name" value="iris3" />
       <arg name="namespace" value="$(arg mav_name)_2" />
-      <arg name="model" value="$(find rotors_description)/urdf/mav_generic_odometry_sensor.gazebo" />
+      <arg name="model" value="$(find vc_new_controller)/urdf/mav_generic_odometry_sensor.gazebo" />
       <arg name="enable_logging" value="$(arg enable_logging)" />
       <arg name="enable_ground_truth" value="$(arg enable_ground_truth)" />
       <arg name="log_file" value="$(arg log_file)" />
@@ -81,8 +81,8 @@
     <node name="lee_position_controller_node" pkg="rotors_control"
       type="lee_position_controller_node" output="screen">
       <rosparam command="load"
-        file="$(find vc_new_controller)/resource/lee_controller_$(arg mav_name).yaml" />
-      <rosparam command="load" file="$(find vc_new_controller)/resource/$(arg mav_name).yaml" />
+        file="$(find vc_new_controller)/resource/lee_controller_iris.yaml" />
+      <rosparam command="load" file="$(find vc_new_controller)/resource/iris.yaml" />
       <remap from="odometry" to="odometry_sensor1/odometry" />
     </node>
     <node name="waypoint_publisher" pkg="rotors_gazebo" type="waypoint_publisher" output="screen"

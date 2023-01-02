@@ -3,7 +3,7 @@
 <robot name="iris" xmlns:xacro="http://ros.org/wiki/xacro">
   <xacro:include filename="$(find rotors_description)/urdf/component_snippets.xacro" />
   <!-- Instantiate iris "mechanics" -->
-  <xacro:include filename="$(find vc_new_controller)/xacro/iris.xacro" />
+  <xacro:include filename="$(find vc_new_controller)/xacro/iris2.xacro" />
 
   <!-- Instantiate a controller. -->
   <xacro:controller_plugin_macro namespace="${namespace}" imu_sub_topic="imu" />
