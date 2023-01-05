@@ -228,7 +228,7 @@ int main(int argc, char **argv)
 		{
 			cout << endl
 					 << "[INFO] Target reached within the feature threshold and maximum iterations" << endl
-			<< endl;
+					 << endl;
 			waitKey(0);
 			break;
 		}
@@ -284,10 +284,6 @@ void imageCallback(const sensor_msgs::Image::ConstPtr &msg)
 	{
 		Mat actual = cv_bridge::toCvShare(msg, "bgr8")->image;
 		cout << "[INFO] Image received" << endl;
-
-		string saveIMG = "/src/vc_new_controller/src/data/img/" + to_string(contIMG++) + ".jpg";
-		imwrite(workspace + saveIMG, actual);
-		cout << "[INFO] << Image saved >>" << saveIMG << endl;
 
 		if (contIMG < 3)
 		{
@@ -384,8 +380,8 @@ void imageCallback(const sensor_msgs::Image::ConstPtr &msg)
 			for (int i = 0; i < new_points.rows; i++)
 			{
 				circle(desired_temp, new_points.at<Point2f>(i, 0), 3, Scalar(255, 0, 0), -1);
-				circle(actual, new_points.at<Point2f>(i, 0), 3, Scalar(255, 0, 0), -1);
-				circle(actual, img_points.at<Point2f>(i, 0), 3, Scalar(0, 0, 255), -1);
+				circle(actual, new_points.at<Point2f>(i, 0), 3, Scalar(0, 0, 255), -1);
+				circle(actual, img_points.at<Point2f>(i, 0), 3, Scalar(255, 0, 0), -1);
 			}
 
 			imshow("Cámara frontal", actual);
@@ -396,6 +392,10 @@ void imageCallback(const sensor_msgs::Image::ConstPtr &msg)
 			img_points = new_points.clone();
 			actual.copyTo(img_old);
 		}
+
+		string saveIMG = "/src/vc_new_controller/src/data/img/" + to_string(contIMG++) + ".jpg";
+		imwrite(workspace + saveIMG, actual);
+		cout << "[INFO] << Image saved >>" << saveIMG << endl;
 
 		/************************************************************* Prepare message */
 		image_msg = cv_bridge::CvImage(std_msgs::Header(), sensor_msgs::image_encodings::BGR8, matching_result.img_matches).toImageMsg();
