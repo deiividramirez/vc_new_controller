@@ -11,26 +11,14 @@ camera_intrinsic_parameters: [550, 0,    376.0,
 dt: 0.01
 
 # Gain on linear velocities
-############################################################
-# Para el control #1
-gainv: .8
-############################################################
-# Para el control #2
-# gain_v: .4
-
-# POSICIÓN DESEADA : (X, Y, Z, Qx, Qy, Qz)
-# X = -1.5
-# Y = 0
-# Z = 1
-# Qx = 0
-# Qy = 0
-# Qz = 0
+gainv: .7
 
 # Gain on angular velocities
 gainw: 1
 
 # Threshold on the feature position error, used to stop the visual control
-feature_error_threshold: .02
+# feature_error_threshold: .02
+feature_error_threshold: .0025
 
 nfeatures: 500
 scaleFactor: 1.2
@@ -42,6 +30,8 @@ flann_ratio: 0.7
 
 ############################################################
 # Cambio de control 1 o 2.
+# 1 Es para 1/dist
+# 2 Es para dist
 control: 1
 
 ############################################################

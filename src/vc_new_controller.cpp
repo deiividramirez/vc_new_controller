@@ -15,16 +15,17 @@ void writeFile(vector<float> &vec, const string &name);
 void saveFRONT(const sensor_msgs::Image::ConstPtr &msg);
 void saveUNDER(const sensor_msgs::Image::ConstPtr &msg);
 
+int MinBy(Mat puntos, Mat key);
+Mat Orden(Mat puntos);
+
 /* Declaring objects to receive messages */
 sensor_msgs::ImagePtr image_msg;
 
 /* Workspace definition from CMake */
 string workspace = WORKSPACE;
 
-// Visual control state
+// Visual control state and results of the matching operation
 vc_state state;
-
-// Result of the matching operation
 vc_homograpy_matching_result matching_result;
 
 // Conteo de imágenes
@@ -32,67 +33,6 @@ int contIMG = 0, contGEN = 0, SAVE_DESIRED_POS, SAVE_IMAGES;
 
 // Matrices para mostrar las imágenes
 Mat img_old, img_points;
-
-int MinBy(Mat puntos, Mat key)
-{
-	// Make buuble sort with norm of the difference between points and key
-	Mat orden = Mat::zeros(1, puntos.rows, CV_32S);
-	Mat p2 = puntos.clone();
-
-	for (int i = 0; i < p2.rows; i++)
-	{
-		orden.at<int>(0, i) = i;
-	}
-
-	for (int i = 0; i < p2.rows; i++)
-	{
-		for (int j = 0; j < p2.rows - 1; j++)
-		{
-			Mat diff1 = p2.row(j) - key;
-			Mat diff2 = p2.row(i) - key;
-			if (norm(diff1) > norm(diff2))
-			{
-				double temp = p2.at<double>(j, 0);
-				p2.at<double>(j, 0) = p2.at<double>(i, 0);
-				p2.at<double>(i, 0) = temp;
-
-				temp = p2.at<double>(j, 1);
-				p2.at<double>(j, 1) = p2.at<double>(i, 1);
-				p2.at<double>(i, 1) = temp;
-
-				int temp2 = orden.at<int>(0, j);
-				orden.at<int>(0, j) = orden.at<int>(0, i);
-				orden.at<int>(0, i) = temp2;
-			}
-		}
-	}
-
-	return orden.at<int>(0, 0);
-}
-
-Mat Orden(Mat puntos)
-{
-	Mat orden = Mat::zeros(1, 4, CV_32S);
-	// The next are constnat matrices to compare points around about
-	Mat key_p1 = (Mat_<double>(1, 2) << 188, 360);
-	Mat key_p2 = (Mat_<double>(1, 2) << 564, 360);
-	Mat key_p3 = (Mat_<double>(1, 2) << 188, 120);
-	Mat key_p4 = (Mat_<double>(1, 2) << 564, 120);
-
-	int mkey_p1 = MinBy(puntos, key_p1);
-	int mkey_p2 = MinBy(puntos, key_p2);
-	int mkey_p3 = MinBy(puntos, key_p3);
-	int mkey_p4 = MinBy(puntos, key_p4);
-
-	orden.at<int>(0, 0) = mkey_p1;
-	orden.at<int>(0, 1) = mkey_p2;
-	orden.at<int>(0, 2) = mkey_p3;
-	orden.at<int>(0, 3) = mkey_p4;
-
-	cout << "Orden: " << orden << endl;
-
-	return orden;
-}
 
 /* Main function */
 int main(int argc, char **argv)
@@ -149,7 +89,7 @@ int main(int argc, char **argv)
 	}
 
 	image_transport::Publisher image_pub = it.advertise("matching", 1);
-	ros::Rate rate(30);
+	ros::Rate rate(60);
 	// ros::Rate rate(120);
 
 	/************************************************************************** OPENING DESIRED IMAGE */
@@ -568,4 +508,65 @@ void writeMatrix(Mat &mat, const string &name)
 		myfile << endl;
 	}
 	myfile.close();
+}
+
+int MinBy(Mat puntos, Mat key)
+{
+	// Make buuble sort with norm of the difference between points and key
+	Mat orden = Mat::zeros(1, puntos.rows, CV_32S);
+	Mat p2 = puntos.clone();
+
+	for (int i = 0; i < p2.rows; i++)
+	{
+		orden.at<int>(0, i) = i;
+	}
+
+	for (int i = 0; i < p2.rows; i++)
+	{
+		for (int j = 0; j < p2.rows - 1; j++)
+		{
+			Mat diff1 = p2.row(j) - key;
+			Mat diff2 = p2.row(i) - key;
+			if (norm(diff1) > norm(diff2))
+			{
+				double temp = p2.at<double>(j, 0);
+				p2.at<double>(j, 0) = p2.at<double>(i, 0);
+				p2.at<double>(i, 0) = temp;
+
+				temp = p2.at<double>(j, 1);
+				p2.at<double>(j, 1) = p2.at<double>(i, 1);
+				p2.at<double>(i, 1) = temp;
+
+				int temp2 = orden.at<int>(0, j);
+				orden.at<int>(0, j) = orden.at<int>(0, i);
+				orden.at<int>(0, i) = temp2;
+			}
+		}
+	}
+
+	return orden.at<int>(0, 0);
+}
+
+Mat Orden(Mat puntos)
+{
+	Mat orden = Mat::zeros(1, 4, CV_32S);
+	// The next are constnat matrices to compare points around about
+	Mat key_p1 = (Mat_<double>(1, 2) << 188, 360);
+	Mat key_p2 = (Mat_<double>(1, 2) << 564, 360);
+	Mat key_p3 = (Mat_<double>(1, 2) << 188, 120);
+	Mat key_p4 = (Mat_<double>(1, 2) << 564, 120);
+
+	int mkey_p1 = MinBy(puntos, key_p1);
+	int mkey_p2 = MinBy(puntos, key_p2);
+	int mkey_p3 = MinBy(puntos, key_p3);
+	int mkey_p4 = MinBy(puntos, key_p4);
+
+	orden.at<int>(0, 0) = mkey_p1;
+	orden.at<int>(0, 1) = mkey_p2;
+	orden.at<int>(0, 2) = mkey_p3;
+	orden.at<int>(0, 3) = mkey_p4;
+
+	cout << "Orden: " << orden << endl;
+
+	return orden;
 }

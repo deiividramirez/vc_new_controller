@@ -148,6 +148,7 @@ Mat Lvl(Mat p2s,                    // Points of the actual image in the sphere
         Mat L = Mat::zeros(n, 3, CV_64F);    // Interaction matrix
         Mat pi, pj;                          // Temporal points for calculation
         double s;
+        cout << (params.control == 1 ? "Control 1: 1/dist" : "Control 2: dist") << endl;
         for (int i = 0; i < n; i++)
         {
                 pi = p2s.row(distances[i].i);
@@ -166,7 +167,7 @@ Mat Lvl(Mat p2s,                    // Points of the actual image in the sphere
                         cout << "[Error] Control parameter not valid" << endl;
                         return L;
                 }
-                temp = s * (pi * ortoProj(pj) + pj * ortoProj(pi));
+                temp = s * ( (pi * ortoProj(pj)) + (pj * ortoProj(pi)) );
                 temp.copyTo(L.row(i));
         }
         temp.release();
