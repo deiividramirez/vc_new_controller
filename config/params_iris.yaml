@@ -30,7 +30,7 @@ gainv: .8
 gainw: 1
 
 # Threshold on the feature position error, used to stop the visual control
-feature_error_threshold: .05
+feature_error_threshold: .02
 
 nfeatures: 500
 scaleFactor: 1.2
