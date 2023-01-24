@@ -1,5 +1,5 @@
 SAVE_DESIRED_POS: 0
-SAVE_IMAGES: 0
+SAVE_IMAGES: 1
 
 # The camera intrinsic parameters matrix
 # 3x3 matrix
@@ -11,14 +11,15 @@ camera_intrinsic_parameters: [550, 0,    376.0,
 dt: 0.01
 
 # Gain on linear velocities
-gainv: .7
+# gainv: .85
+gainv: .85
 
 # Gain on angular velocities
 gainw: 1
 
 # Threshold on the feature position error, used to stop the visual control
-# feature_error_threshold: .02
-feature_error_threshold: .0025
+feature_error_threshold: .008
+# feature_error_threshold: .0025
 
 nfeatures: 500
 scaleFactor: 1.2

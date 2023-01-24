@@ -25,7 +25,7 @@ img_names.sort(key=lambda x: int(x.split('.')[0]))
 
 imgs = []
 for iter, img_name in enumerate(img_names):
-    print(f'Loading image {iter+1}|{len(img_names)}', end='\r')
+    print(f'Loading image {iter+1:>5}|{len(img_names):<5}', end='\r')
     img = cv2.imread(os.path.join(img_dir, img_name))
     imgs.append(img)
 
@@ -34,7 +34,7 @@ fps = 30
 size = (imgs[0].shape[1], imgs[0].shape[0])
 gifWriter = imageio.get_writer(f'{path}/out_sim.gif', fps=fps)
 for iter, img in enumerate(imgs):
-    print(f'Saving gif at {iter+1}|{len(imgs)}', end='\r')
+    print(f'Saving gif at {iter+1:>5}|{len(imgs):<5}', end='\r')
     gifWriter.append_data(img)
 gifWriter.close()
 print('The GIF has been saved.')

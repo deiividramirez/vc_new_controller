@@ -396,8 +396,8 @@ void imageCallback(const sensor_msgs::Image::ConstPtr &msg)
 				circle(actual, img_points.at<Point2f>(i, 0), 3, Scalar(255, 0, 0), -1);
 			}
 
-			imshow("Cámara frontal", actual);
 			imshow("Desired", desired_temp);
+			imshow("Cámara frontal", actual);
 			waitKey(1);
 
 			new_points.convertTo(matching_result.p2, CV_64F);
