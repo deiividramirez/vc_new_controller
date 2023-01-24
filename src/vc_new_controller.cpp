@@ -1,6 +1,7 @@
 #include "vc_new_controller.h"
 #include <opencv2/aruco.hpp>
 #include <opencv2/video/tracking.hpp>
+
 /* Declaring namespaces */
 using namespace cv;
 using namespace std;
@@ -10,6 +11,9 @@ void imageCallback(const sensor_msgs::Image::ConstPtr &msg);
 void imageCallback2(const sensor_msgs::Image::ConstPtr &msg);
 void poseCallback(const geometry_msgs::Pose::ConstPtr &msg);
 void writeFile(vector<float> &vec, const string &name);
+
+void saveFRONT(const sensor_msgs::Image::ConstPtr &msg);
+void saveUNDER(const sensor_msgs::Image::ConstPtr &msg);
 
 /* Declaring objects to receive messages */
 sensor_msgs::ImagePtr image_msg;
@@ -24,7 +28,7 @@ vc_state state;
 vc_homograpy_matching_result matching_result;
 
 // Conteo de imágenes
-int contIMG = 0;
+int contIMG = 0, contGEN = 0, SAVE_DESIRED_POS, SAVE_IMAGES;
 
 // Matrices para mostrar las imágenes
 Mat img_old, img_points;
@@ -98,6 +102,9 @@ int main(int argc, char **argv)
 	ros::NodeHandle nh;
 	state.load(nh);
 
+	nh.getParam("SAVE_DESIRED_POS", SAVE_DESIRED_POS);
+	nh.getParam("SAVE_IMAGES", SAVE_IMAGES);
+
 	image_transport::ImageTransport it(nh);
 	image_transport::Subscriber image_sub, image_sub2;
 
@@ -107,32 +114,38 @@ int main(int argc, char **argv)
 	{
 		cout << "[INFO] Using hummingbird bottom camera" << endl;
 		image_sub = it.subscribe("/hummingbird/camera_nadir/image_raw", 1, imageCallback);
-		image_dir = "/src/vc_new_controller/src/desired.jpg";
+		image_dir = "/src/vc_new_controller/src/desired_u.jpg";
 	}
 	else if (state.params.camara == 1)
 	{
 		cout << "[INFO] Using iris front camera" << endl;
-		image_sub = it.subscribe("/iris_1/camera_front_camera/image_raw", 1, imageCallback);
-		image_dir = "/src/vc_new_controller/src/desired2.jpg";
+		image_sub = it.subscribe("/iris/camera_front_camera/image_raw", 1, imageCallback);
+		image_dir = "/src/vc_new_controller/src/desired_f.jpg";
 	}
 	else if (state.params.camara == 2)
 	{
 		cout << "[INFO] Using iris bottom camera" << endl;
-		image_sub = it.subscribe("/iris_1/camera_under_camera/image_raw", 1, imageCallback);
-		image_dir = "/src/vc_new_controller/src/desired.jpg";
+		image_sub = it.subscribe("/iris/camera_under_camera/image_raw", 1, imageCallback);
+		image_dir = "/src/vc_new_controller/src/desired_u.jpg";
 	}
 	else if (state.params.camara == 3)
 	{
 		state.params.camara = 1;
 		cout << "[INFO] Using both cameras" << endl;
-		image_sub = it.subscribe("/iris_1/camera_front_camera/image_raw", 1, imageCallback);
-		image_sub2 = it.subscribe("/iris_1/camera_under_camera/image_raw", 1, imageCallback2);
+		image_sub = it.subscribe("/iris/camera_front_camera/image_raw", 1, imageCallback);
+		image_sub2 = it.subscribe("/iris/camera_under_camera/image_raw", 1, imageCallback2);
 		image_dir = "/src/vc_new_controller/src/desired2.jpg";
 	}
 	else
 	{
 		cout << "[ERROR] There is no camera with that number" << endl;
-		exit(-1);
+		ros::shutdown();
+	}
+
+	if (SAVE_DESIRED_POS)
+	{
+		image_sub = it.subscribe("/iris/camera_front_camera/image_raw", 1, saveFRONT);
+		image_sub2 = it.subscribe("/iris/camera_under_camera/image_raw", 1, saveUNDER);
 	}
 
 	image_transport::Publisher image_pub = it.advertise("matching", 1);
@@ -184,8 +197,8 @@ int main(int argc, char **argv)
 	{
 		cout << "[INFO] Iris trajectory and pose" << endl
 				 << endl;
-		pos_pub = nh.advertise<trajectory_msgs::MultiDOFJointTrajectory>("/iris_1/command/trajectory", 1);
-		pos_sub = nh.subscribe<geometry_msgs::Pose>("/iris_1/ground_truth/pose", 1, poseCallback);
+		pos_pub = nh.advertise<trajectory_msgs::MultiDOFJointTrajectory>("/iris/command/trajectory", 1);
+		pos_sub = nh.subscribe<geometry_msgs::Pose>("/iris/ground_truth/pose", 1, poseCallback);
 	}
 
 	/**************************************************************************** data for graphics */
@@ -208,21 +221,17 @@ int main(int argc, char **argv)
 		// get a msg
 		ros::spinOnce();
 
+		if (contGEN > 50 && SAVE_DESIRED_POS)
+		{
+			cout << "\n[INFO] Images have been saved." << endl;
+			ros::shutdown();
+		}
+
 		if (!state.initialized)
 		{
 			rate.sleep();
 			continue;
 		} // if we havent get the new pose
-
-		// save data
-		time.push_back(state.t);
-		errors.push_back((float)matching_result.mean_feature_error);
-		errors_pix.push_back((float)matching_result.mean_feature_error_pix);
-		vel_x.push_back(state.Vx);
-		vel_y.push_back(state.Vy);
-		vel_z.push_back(state.Vz);
-		vel_yaw.push_back(state.Vyaw);
-		lambda.push_back(state.lambda);
 
 		if (matching_result.mean_feature_error < state.params.feature_threshold)
 		{
@@ -232,14 +241,29 @@ int main(int argc, char **argv)
 			waitKey(0);
 			break;
 		}
+		else
+		{
+			contGEN++;
+		}
 
 		// Publish image of the matching
 		cout << endl
 				 << "[INFO] Publishing image" << endl;
 		image_pub.publish(image_msg);
+		
+		// save data
+		time.push_back(state.t);
+		errors.push_back((float)matching_result.mean_feature_error);
+		errors_pix.push_back((float)matching_result.mean_feature_error_pix);
+		vel_x.push_back(state.Vx);
+		vel_y.push_back(state.Vy);
+		vel_z.push_back(state.Vz);
+		lambda.push_back(state.lambda);
 
 		// Update state with the current control
 		auto new_pose = state.update();
+
+		vel_yaw.push_back(state.Vyaw);
 
 		// Prepare msg
 		msg.header.stamp = ros::Time::now();
@@ -276,6 +300,32 @@ int main(int argc, char **argv)
 	params:
 		msg: ptr to the msg image.
 */
+
+void saveFRONT(const sensor_msgs::Image::ConstPtr &msg)
+{
+	/* cout << "[INFO] Saving Desired 1f" << endl; */
+
+	Mat actual = cv_bridge::toCvShare(msg, "bgr8")->image;
+	// cout << "[INFO] Image 1f received" << endl;
+
+	string saveIMG = WORKSPACE;
+	saveIMG += +"/src/vc_new_controller/src/desired_f.jpg";
+	imwrite(saveIMG, actual);
+	cout << "[INFO] << Image 1f saved >> " << saveIMG << endl;
+}
+
+void saveUNDER(const sensor_msgs::Image::ConstPtr &msg)
+{
+	/* cout << "[INFO] Saving Desired 1f" << endl; */
+
+	Mat actual = cv_bridge::toCvShare(msg, "bgr8")->image;
+	// cout << "[INFO] Image 1f received" << endl;
+
+	string saveIMG = WORKSPACE;
+	saveIMG += +"/src/vc_new_controller/src/desired_u.jpg";
+	imwrite(saveIMG, actual);
+	cout << "[INFO] << Image 1f saved >> " << saveIMG << endl;
+}
 
 void imageCallback(const sensor_msgs::Image::ConstPtr &msg)
 {
@@ -354,6 +404,28 @@ void imageCallback(const sensor_msgs::Image::ConstPtr &msg)
 		{
 			Mat img_new = actual;
 
+			std::vector<int> markerIds;
+			std::vector<std::vector<cv::Point2f>> markerCorners, rejectedCandidates;
+			cv::Ptr<cv::aruco::DetectorParameters> parameters = cv::aruco::DetectorParameters::create();
+			cv::Ptr<cv::aruco::Dictionary> dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
+			cv::aruco::detectMarkers(actual, dictionary, markerCorners, markerIds, parameters, rejectedCandidates);
+
+			Mat temporal = Mat::zeros(4, 2, CV_32F);
+			temporal.at<Point2f>(0, 0) = Point2f(markerCorners[0][0].x, markerCorners[0][0].y);
+			temporal.at<Point2f>(1, 0) = Point2f(markerCorners[0][1].x, markerCorners[0][1].y);
+			temporal.at<Point2f>(2, 0) = Point2f(markerCorners[0][2].x, markerCorners[0][2].y);
+			temporal.at<Point2f>(3, 0) = Point2f(markerCorners[0][3].x, markerCorners[0][3].y);
+			temporal.convertTo(matching_result.p2, CV_64F);
+			temporal.convertTo(img_points, CV_32F);
+
+			cv::aruco::detectMarkers(state.desired_configuration.img, dictionary, markerCorners, markerIds, parameters, rejectedCandidates);
+			temporal = Mat::zeros(4, 2, CV_32F);
+			temporal.at<Point2f>(0, 0) = Point2f(markerCorners[0][0].x, markerCorners[0][0].y);
+			temporal.at<Point2f>(1, 0) = Point2f(markerCorners[0][1].x, markerCorners[0][1].y);
+			temporal.at<Point2f>(2, 0) = Point2f(markerCorners[0][2].x, markerCorners[0][2].y);
+			temporal.at<Point2f>(3, 0) = Point2f(markerCorners[0][3].x, markerCorners[0][3].y);
+			temporal.convertTo(matching_result.p1, CV_64F);
+
 			// AQUI ES DONDE SE EJECUTA TODOOOOO
 			if (GUO(actual, state, matching_result) < 0)
 			{
@@ -393,9 +465,18 @@ void imageCallback(const sensor_msgs::Image::ConstPtr &msg)
 			actual.copyTo(img_old);
 		}
 
-		string saveIMG = "/src/vc_new_controller/src/data/img/" + to_string(contIMG++) + ".jpg";
-		imwrite(workspace + saveIMG, actual);
-		cout << "[INFO] << Image saved >>" << saveIMG << endl;
+		if (SAVE_IMAGES)
+		{
+			string saveIMG = "/src/vc_new_controller/src/data/img/" + to_string(contIMG++) + ".jpg";
+			imwrite(workspace + saveIMG, actual);
+			cout << "[INFO] << Image saved >>" << saveIMG << endl;
+		}
+		else
+		{
+			string saveIMG = "/src/vc_new_controller/src/data/img/0.jpg";
+			imwrite(workspace + saveIMG, actual);
+			cout << "[INFO] << Image saved >>" << saveIMG << endl;
+		}
 
 		/************************************************************* Prepare message */
 		image_msg = cv_bridge::CvImage(std_msgs::Header(), sensor_msgs::image_encodings::BGR8, matching_result.img_matches).toImageMsg();

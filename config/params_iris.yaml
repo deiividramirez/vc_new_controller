@@ -1,7 +1,10 @@
+SAVE_DESIRED_POS: 0
+SAVE_IMAGES: 0
+
 # The camera intrinsic parameters matrix
 # 3x3 matrix
-camera_intrinsic_parameters: [241.4268236, 0,    376.0,
-                              0,    241.4268236, 240.0,
+camera_intrinsic_parameters: [550, 0,    376.0,
+                              0,    550, 240.0,
                               0,    0,    1]
 
 # Sampling time
@@ -10,7 +13,7 @@ dt: 0.01
 # Gain on linear velocities
 ############################################################
 # Para el control #1
-gainv: .5
+gainv: .8
 ############################################################
 # Para el control #2
 # gain_v: .4

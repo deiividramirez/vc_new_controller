@@ -12,25 +12,10 @@
   when Gazebo is started through roslaunch) -->
   <arg name="verbose" default="false" />
 
-  <arg name="x_1" default="-2" />
+  <arg name="x_1" default="-2.5" />
   <arg name="y_1" default="0" />
   <arg name="z_1" default="1" />
   <arg name="yaw_1" default="0" />
-  
-  <arg name="x_2" default="-4" />
-  <arg name="y_2" default="0" />
-  <arg name="z_2" default="1" />
-  <arg name="yaw_2" default="0" />
-
-  <arg name="x_3" default="-6" />
-  <arg name="y_3" default="0" />
-  <arg name="z_3" default="1" />
-  <arg name="yaw_3" default="0" />
-  
-  <arg name="x_4" default="-8" />
-  <arg name="y_4" default="0" />
-  <arg name="z_4" default="1" />
-  <arg name="yaw_4" default="0" />
 
   <env name="GAZEBO_MODEL_PATH" value="${GAZEBO_MODEL_PATH}:$(find vc_new_controller)/models" />
   <env name="GAZEBO_RESOURCE_PATH" value="${GAZEBO_RESOURCE_PATH}:$(find vc_new_controller)/models" />
@@ -42,10 +27,10 @@
     <arg name="verbose" value="$(arg verbose)" />
   </include>
 
-  <group ns="$(arg mav_name)_1">
+  <group ns="$(arg mav_name)">
     <include file="$(find vc_new_controller)/launch/spawn_mav.launch">
-      <arg name="mav_name" value="iris1" />
-      <arg name="namespace" value="$(arg mav_name)_1" />
+      <arg name="mav_name" value="iris" />
+      <arg name="namespace" value="$(arg mav_name)" />
       <arg name="model" value="$(find vc_new_controller)/urdf/mav_generic_odometry_sensor.gazebo" />
       <arg name="enable_logging" value="$(arg enable_logging)" />
       <arg name="enable_ground_truth" value="$(arg enable_ground_truth)" />

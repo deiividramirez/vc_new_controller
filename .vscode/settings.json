@@ -75,7 +75,8 @@
         "cinttypes": "cpp",
         "typeindex": "cpp",
         "typeinfo": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "forward_list": "cpp"
     },
     "python.analysis.extraPaths": [
         "~/catkin_ws/devel/lib/python3/dist-packages",
