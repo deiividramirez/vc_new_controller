@@ -89,7 +89,7 @@ int main(int argc, char **argv)
 	}
 
 	image_transport::Publisher image_pub = it.advertise("matching", 1);
-	ros::Rate rate(60);
+	ros::Rate rate(30);
 	// ros::Rate rate(120);
 
 	/************************************************************************** OPENING DESIRED IMAGE */
@@ -270,6 +270,7 @@ void saveUNDER(const sensor_msgs::Image::ConstPtr &msg)
 void imageCallback(const sensor_msgs::Image::ConstPtr &msg)
 {
 	cout << "[INFO] ImageCallback function" << endl;
+	
 	try
 	{
 		Mat actual = cv_bridge::toCvShare(msg, "bgr8")->image;
@@ -396,7 +397,12 @@ void imageCallback(const sensor_msgs::Image::ConstPtr &msg)
 				circle(actual, img_points.at<Point2f>(i, 0), 3, Scalar(255, 0, 0), -1);
 			}
 
+			namedWindow("Desired", WINDOW_NORMAL);
+			cv::resizeWindow("Desired", 960, 540);
 			imshow("Desired", desired_temp);
+
+			namedWindow("Cámara frontal", WINDOW_NORMAL);
+			cv::resizeWindow("Cámara frontal", 960, 540);
 			imshow("Cámara frontal", actual);
 			waitKey(1);
 
@@ -551,8 +557,8 @@ Mat Orden(Mat puntos)
 {
 	Mat orden = Mat::zeros(1, 4, CV_32S);
 	// The next are constnat matrices to compare points around about
-	Mat key_p1 = (Mat_<double>(1, 2) << 188, 360);
-	Mat key_p2 = (Mat_<double>(1, 2) << 564, 360);
+	Mat key_p1 = (Mat_<double>(1, 2) << 188, 540);
+	Mat key_p2 = (Mat_<double>(1, 2) << 564, 540);
 	Mat key_p3 = (Mat_<double>(1, 2) << 188, 120);
 	Mat key_p4 = (Mat_<double>(1, 2) << 564, 120);
 

@@ -51,15 +51,6 @@ std::pair<Eigen::VectorXd, float> vc_state::update()
   this->t += this->dt;
   this->Vyaw = -this->Yaw;
   // Integrating
-
-  // if (this->params.camara == 1)
-  // {
-  //   this->X = this->X + this->Kv * -this->Vz * this->dt;
-  //   this->Y = this->Y + this->Kv * this->Vy * this->dt;
-  //   this->Z = this->Z + this->Kv * this->Vx * this->dt;
-  // }
-  // else
-  // {
   this->X = this->X + this->Kv * this->Vx * this->dt;
   this->Y = this->Y + this->Kv * this->Vy * this->dt;
   this->Z = this->Z + this->Kv * this->Vz * this->dt;
@@ -73,10 +64,7 @@ std::pair<Eigen::VectorXd, float> vc_state::update()
   position(0) = this->X;
   position(1) = this->Y;
   position(2) = this->Z;
-/* 
-  this->Vx = 0;
-  this->Vy = 0;
-  this->Vz = 0; */
+  
   return make_pair(position, this->Yaw);
 }
 

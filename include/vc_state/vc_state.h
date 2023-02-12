@@ -61,7 +61,6 @@ class vc_state {
                         const float &y,
                         const float &z,
                         const float &yaw);
-//         int (*controller )[1];
 };
 
 

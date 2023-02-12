@@ -3,9 +3,9 @@ SAVE_IMAGES: 1
 
 # The camera intrinsic parameters matrix
 # 3x3 matrix
-camera_intrinsic_parameters: [550, 0,    376.0,
-                              0,    550, 240.0,
-                              0,    0,    1]
+camera_intrinsic_parameters: [700,   0,    960,
+                              0,    700,   540,
+                              0,     0,     1]
 
 # Sampling time
 dt: 0.01
