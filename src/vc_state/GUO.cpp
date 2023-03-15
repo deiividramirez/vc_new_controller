@@ -274,8 +274,8 @@ int GUO(Mat img,                                      // Image to be processed
         if (state.params.camara == 1)
         {
                 state.Vx = -(float)U.at<double>(2, 0);
-                state.Vy =  (float)U.at<double>(0, 0);
-                state.Vz =  (float)U.at<double>(1, 0);
+                state.Vy = (float)U.at<double>(0, 0);
+                state.Vz = (float)U.at<double>(1, 0);
         }
         else
         {
